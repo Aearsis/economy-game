@@ -1,0 +1,57 @@
+hráči
+	uživatel (One-to-one django.users)
+	tým
+
+týmy
+	název
+	je_skript
+	inicializován
+
+věci
+	název
+	jednotky
+	licence
+
+stavy
+	tým
+	věc
+	počet_obchodovatelných
+	počet_blokovaných
+
+	odečti_věc(): zkontroluje se, zda se neporučila pravidla licencí
+
+recept
+	název
+	popis
+
+přísada
+	věc
+	množství
+	typ (sežere to, potřebuje to, vyrobí to)
+
+aukce
+	začátek
+	konec
+	tým
+	jméno prodávajícího (inv. NULL pokud je_černá)
+	požadovaná věc
+	minimum
+	vyřízena
+	je_černá
+	komentář
+
+prodej
+	aukce
+	věc
+	množství
+	ukáže se (inv. true pokud není černá)
+	přijde (inv. true pokud není černá)
+
+příhoz
+	tým
+	maximální_nabídka
+
+log
+	tým
+	zpráva
+	čas
