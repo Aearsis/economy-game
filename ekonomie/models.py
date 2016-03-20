@@ -17,7 +17,7 @@ class Game(models.Model):
         return timezone.now() - self.started
 
 class Team(models.Model):
-    name = models.TextField(max_length=256, unique=True)
+    name = models.CharField(max_length=256, unique=True)
     visible = models.BooleanField(default=False)
 
     def __str__(self):
@@ -42,8 +42,8 @@ class Status(models.Model):
         verbose_name_plural = "Statuses"
 
 class Entity(models.Model):
-    name = models.TextField()
-    units = models.TextField(blank=True)
+    name = models.CharField(max_length=128)
+    units = models.CharField(max_length=128,blank=True)
     licence = models.ForeignKey("self", null=True, blank=True)
 
     def __str__(self):
@@ -112,7 +112,7 @@ class WhiteAuction(Auction):
         verbose_name_plural = "Auctions"
 
 class BlackAuction(Auction):
-    seller_name = models.TextField()
+    seller_name = models.CharField(max_length=128)
     status_text = models.TextField()
 
     def __str__(self):
