@@ -1,0 +1,6 @@
+Potřebné moduly:
+
+django-timedelta
+
+Vyrobte si vlastního admin uživatele pomocí:
+	./manage.py createsuperuser
