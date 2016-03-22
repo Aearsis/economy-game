@@ -23,6 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'z=e-y+cdl)^*5489kfnzl7qex*idcrwk*@%bg^2iuujw3$o06z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# After turning debug off, deploying static files must be reconfigured,
+# see https://docs.djangoproject.com/es/1.9/howto/static-files/deployment/ for details
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -122,3 +124,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [ os.path.join(BASE_DIR, 'static') ]
