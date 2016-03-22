@@ -28,7 +28,8 @@ class Player(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        team_str = self.team.name if self.team else "no team"
+        return self.user.username+" ("+team_str+")"
 
 class Status(models.Model):
     time = timedelta.TimedeltaField()
