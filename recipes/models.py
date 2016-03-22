@@ -9,9 +9,9 @@ class Recipe(models.Model):
         return "%s: %s" % (self.name, self.description)
 
 class Ingredient(models.Model):
-    CONSUME = 0,
-    NEED = 1,
-    CREATE = 2,
+    CONSUME = 0
+    NEED = 1
+    CREATE = 2
     TYPES = (
         (CONSUME, "Consumes"),
         (NEED, "Needs"),
