@@ -215,6 +215,8 @@ class Balance(models.Model):
 
         NOTE: When transferring a group of items, make sure licences are saved first -- otherwise, the following
         constraint fails
+
+        XXX: this is unefficient, consider commenting out in production
         """
         licence = self.entity.licence
         have_licence = False
