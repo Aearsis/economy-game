@@ -52,7 +52,7 @@ class Team(models.Model):
     ### Trading and transferring entities
 
     @transaction.atomic
-    def transfer(self, pretend, entities_amounts_in=[], entities_amounts_out=[], \
+    def transfer(self, pretend, entities_amounts_in=[], entities_amounts_out=[], entities_amounts_check=[], \
                  in_blocked=False, out_blocked=False):
         """
             Transfers entities between teams or system.
@@ -61,6 +61,7 @@ class Team(models.Model):
                             If set to False, perform the transaction and raise ValidationError.
             :param entities_amounts_in: List of EntityAmounts which the team gives away
             :param entities_amounts_out: List of EntityAmounts that the team accepts
+            :param entities_amounts_check: List of EntityAmounts that the team must own in the beginning of transfer
             :param in_blocked: Incoming entites are blocked
             :param out_blocked: Outgoing entities are blocked
         """
@@ -85,6 +86,10 @@ class Team(models.Model):
                 balance.amount += mul*ent_am.amount
                 if balance.amount < 0:
                     raise ValidationError(str(ent_am.entity)+" is negative")
+
+        def check_enough(ent_am):
+            if get_tmp_balance(ent_am.entity).amount < ent_am.amount:
+                raise ValidationError("Not enough %s" % ent_am.entity)
 
         def licence_check(ent_am):
             this_amount = get_tmp_balance(ent_am.entity).amount
@@ -114,6 +119,9 @@ class Team(models.Model):
         in_sorted = sorted(entities_amounts_in, key=lambda ent_am: int(ent_am.entity.licence is not None))
 
         try:
+            for ent_am in entities_amounts_check:
+                check_enough(ent_am)
+
             for ent_am in out_sorted:
                 entity_count(ent_am, add=False)
                 licence_check(ent_am)
