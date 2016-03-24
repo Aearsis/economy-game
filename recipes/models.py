@@ -5,6 +5,14 @@ class Recipe(models.Model):
     name = models.TextField()
     description = models.TextField()
 
+
+    def perform(self, team):
+        """
+        Apply the recipe for the team. Throws ValidationError when there is not enough entities.
+        :param team: Team
+        """
+        pass
+
     def __str__(self):
         return "%s: %s" % (self.name, self.description)
 

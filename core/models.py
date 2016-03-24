@@ -20,14 +20,25 @@ class Game(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=256, unique=True)
     visible = models.BooleanField(default=False)
+    balance = None
 
-    def balance(self):
+    def get_balance(self, entity):
         """
-        Returns team's balance as a dictionary { entity:balance }
-        :rtype Dict[Entity, Balance]
+        Returns balance of a entity or creates new if not yet defined
+        :rtype Balance
         """
-        bal = Balance.objects.filter(team=self)
-        return { balance.entity:balance for balance in bal }
+        balance = self.get_balance_complete()
+        if entity not in balance:
+            balance[entity] = Balance(team=self, entity=entity)
+
+        return balance[entity]
+
+    def get_balance_complete(self):
+        if not self.balance:
+            bal_set = Balance.objects.filter(team=self)
+            self.balance = { balance.entity:balance for balance in bal_set }
+
+        return self.balance
 
     def __str__(self):
         return self.name
@@ -81,10 +92,9 @@ class Balance(models.Model):
         constraint fails
         """
         licence = self.entity.licence
-        team_balance = self.team.balance()
         have_licence = False
         try:
-            if licence is None or team_balance[licence].total() > 0:
+            if licence is None or self.team.get_balance(licence).total() > 0:
                 have_licence = True
         except KeyError:
             pass
@@ -92,7 +102,7 @@ class Balance(models.Model):
             raise ValidationError("Cannot own %s, licence not present" % self.entity)
 
         if self.amount==0: # blocked licences don't count
-            for entity, balance in team_balance.items():
+            for entity, balance in self.team.get_balance_complete().items():
                 if entity.licence==self.entity and balance.amount > 0:
                     raise ValidationError("Cannot set %s amount to zero, %s depends on it" % (self, entity))
 
