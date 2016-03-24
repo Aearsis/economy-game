@@ -83,7 +83,6 @@ class Team(models.Model):
                     raise ValidationError(str(ent_am.entity)+" is negative")
             else:
                 balance.amount += mul*ent_am.amount
-                print(ent_am.entity,balance.amount)
                 if balance.amount < 0:
                     raise ValidationError(str(ent_am.entity)+" is negative")
 
