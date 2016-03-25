@@ -32,6 +32,8 @@ class Game(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=256, unique=True)
     visible = models.BooleanField(default=False)
+
+    # Cache of team's balances
     balance = None
 
 
@@ -161,6 +163,34 @@ class Team(models.Model):
     def unblock(self, ent_am, pretend=False):
         return self.transfer(pretend=pretend, entities_amounts_out=ent_am, entities_amounts_in=ent_am, out_blocked=True)
 
+    @transaction.atomic
+    def block_auction(self, entity):
+        """
+        Raises auction counter of the entity (and blocks it if needed)
+        """
+        bal = self.get_balance(entity)
+        bal.auction_block_cnt += 1
+        bal.save()
+        self.balance[entity] = bal
+
+        if bal.auction_block_cnt==1:
+            self.block([ EntityAmount(entity, 1) ])
+
+    @transaction.atomic
+    def unblock_auction(self, entity):
+        bal = self.get_balance(entity)
+        do_unblock = False
+
+        if bal.auction_block_cnt > 0:
+            bal.auction_block_cnt -= 1
+            if bal.auction_block_cnt==0:
+                do_unblock = True
+        bal.save()
+        self.balance[entity] = bal
+
+        if do_unblock:
+            self.unblock([ EntityAmount(entity, 1) ])
+
     def __str__(self):
         return self.name
 
@@ -216,6 +246,7 @@ class Balance(models.Model):
     entity = models.ForeignKey(Entity)
     amount = models.PositiveIntegerField(default=0)
     blocked = models.PositiveIntegerField(default=0)
+    auction_block_cnt = models.PositiveSmallIntegerField(default=0)
 
     def total(self):
         return self.amount + self.blocked

@@ -1,21 +1,63 @@
 from django.db import models
+from typing import List
+
 from core.models import *
 import timedelta
+import datetime
+
 
 class Auction(models.Model):
     begin = timedelta.TimedeltaField()
     end = timedelta.TimedeltaField()
-    description = models.TextField(max_length=256)
+    description = models.TextField(max_length=256, null=True)
     wants = models.ForeignKey(Entity)
     minimum = models.PositiveIntegerField()
-    bid_step = models.PositiveIntegerField()
+    bid_step = models.PositiveIntegerField(default=1)
     transaction_made = models.BooleanField(default=False)
+
+    def highest_offer(self):
+        """
+        Returns the effective (visible) offer or None if there was no offer yet
+        """
+        pass
 
     def __str__(self):
         return "Prostě aukce. To je bug."
 
+
 class WhiteAuction(Auction):
     seller = models.ForeignKey(Team)
+
+    @staticmethod
+    @transaction.atomic
+    def create(seller: Team, end: datetime.timedelta, wants: EntityAmount, offers: List[EntityAmount],
+               bid_step: int):
+        """
+        Checks for items and creates a standard white auction.
+        :raises ValidationError on failure
+        :rtype WhiteAuction
+        """
+
+        # block offered items and licence of wanted item
+        seller.block(offers)
+        if wants.entity.licence:
+            seller.block_auction(wants.entity.licence)
+        ### XXX: breaks balance cache when it fails
+
+        auction = WhiteAuction()
+        auction.begin = Game.the_row().to_delta(timezone.now())
+        auction.end = end
+        auction.wants = wants.entity
+        auction.minimum = wants.amount
+        auction.bid_step = bid_step
+        auction.seller = seller
+        auction.save()
+
+        for offer in offers:
+            item = AuctionedItem(auction=auction, entity=offer.entity, amount=offer.amount, visible=True, will_sell=True)
+            item.save()
+
+        return auction
 
     def __str__(self):
         return "Aukce od uživatele %s" % self.seller.name
