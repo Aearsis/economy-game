@@ -9,6 +9,10 @@ from django.core.exceptions import ValidationError
 class Game(models.Model):
     started = models.DateTimeField(null=True, blank=True)
 
+    @staticmethod
+    def the_row():
+        return Game.objects.get(id=1)
+
     def has_started(self):
         return self.started is not None
 
@@ -52,8 +56,8 @@ class Team(models.Model):
     ### Trading and transferring entities
 
     @transaction.atomic
-    def transfer(self, pretend, entities_amounts_in=[], entities_amounts_out=[], entities_amounts_check=[], \
-                 in_blocked=False, out_blocked=False):
+    def transfer(self, entities_amounts_in=[], entities_amounts_out=[], entities_amounts_check=[], \
+                 in_blocked=False, out_blocked=False, pretend=False):
         """
             Transfers entities between teams or system.
 
@@ -91,16 +95,18 @@ class Team(models.Model):
             if get_tmp_balance(ent_am.entity).amount < ent_am.amount:
                 raise ValidationError("Not enough %s" % ent_am.entity)
 
-        def licence_check(ent_am):
-            this_amount = get_tmp_balance(ent_am.entity).amount
-            if ent_am.entity.licence: # this entity depends on a licence
-                licence_amount = get_tmp_balance(ent_am.entity.licence).amount
-                if licence_amount==0 and this_amount > 0:
+        def licence_check_in(ent_am):
+            if ent_am.entity.licence:  # this entity depends on a licence
+                licence_bal = get_tmp_balance(ent_am.entity.licence)  # only non-block sum is counted
+                this_bal = get_tmp_balance(ent_am.entity)
+                if licence_bal.amount == 0 and this_bal.amount > 0:
                     raise ValidationError("No licence for "+str(ent_am.entity))
 
-            if this_amount==0 and ent_am.entity in licence_map: # this entity is a licence and we have none
+        def licence_check_out(ent_am):
+            if get_tmp_balance(ent_am.entity).amount==0 and ent_am.entity in licence_map: # this entity is a licence and we have none
                 for dep in licence_map[ent_am.entity]:
-                    if get_tmp_balance(dep).amount > 0:
+                    dep_bal = get_tmp_balance(dep)
+                    if dep_bal.amount > 0:
                         raise ValidationError("%s depends on %s" % (dep, ent_am.entity))
 
         def commit(ent_am):
@@ -124,12 +130,12 @@ class Team(models.Model):
 
             for ent_am in out_sorted:
                 entity_count(ent_am, add=False)
-                licence_check(ent_am)
+                licence_check_out(ent_am)
                 commit(ent_am)
 
             for ent_am in in_sorted:
                 entity_count(ent_am, add=True)
-                licence_check(ent_am)
+                licence_check_in(ent_am)
                 commit(ent_am)
 
             # save the cache back to the object
@@ -142,12 +148,11 @@ class Team(models.Model):
             else:
                 raise
 
+    def block(self, ent_am, pretend=False):
+        return self.transfer(pretend=pretend, entities_amounts_out=ent_am, entities_amounts_in=ent_am, in_blocked=True)
 
-    def can_block(self, ent_am):
-        pass
-
-    def can_give(self, ent_am):
-        pass
+    def unblock(self, ent_am, pretend=False):
+        return self.transfer(pretend=pretend, entities_amounts_out=ent_am, entities_amounts_in=ent_am, out_blocked=True)
 
     def __str__(self):
         return self.name
