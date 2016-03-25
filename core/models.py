@@ -17,10 +17,17 @@ class Game(models.Model):
         return self.started is not None
 
     def time_passed(self, delta):
-        return self.started + delta >= timezone.now()
+        return self.started + delta <= timezone.now()
 
     def game_time(self):
         return timezone.now() - self.started
+
+    def to_delta(self, date):
+        return date-self.started
+
+    def to_date(self, delta):
+        return self.started + delta
+
 
 class Team(models.Model):
     name = models.CharField(max_length=256, unique=True)
