@@ -26,7 +26,7 @@ class Recipe(models.Model):
 
         return (needs, creates, consumes)
 
-    def perform(self, team):
+    def perform(self, team, pretend=False):
         """
         Apply the recipe for the team. Throws ValidationError when there is not enough entities.
         :param team: Team
@@ -34,7 +34,7 @@ class Recipe(models.Model):
 
         (needs, creates, consumes) = self.ingredients()
         ingredients = Ingredient.objects.filter()
-        team.transfer(pretend=False, entities_amounts_in=creates, entities_amounts_out=consumes, entities_amounts_check=needs)
+        team.transfer(pretend=pretend, entities_amounts_in=creates, entities_amounts_out=consumes, entities_amounts_check=needs)
 
     def __str__(self):
         return "%s: %s" % (self.name, self.description)
