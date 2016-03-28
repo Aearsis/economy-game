@@ -1,6 +1,3 @@
-from django.db import models
-from typing import List
-
 from core.models import *
 import timedelta
 import datetime
@@ -30,7 +27,7 @@ class WhiteAuction(Auction):
 
     @staticmethod
     @transaction.atomic
-    def create(seller: Team, end: datetime.timedelta, wants: EntityAmount, offers: List[EntityAmount],
+    def create(seller: Team, end: datetime.timedelta, wants: Quantity, offers: List[Quantity],
                bid_step: int):
         """
         Checks for items and creates a standard white auction.

@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from copy import deepcopy
 import timedelta
-from django.core.exceptions import ValidationError
+from typing import List
+
 
 # Single row to hold game state
 class Game(models.Model):
@@ -33,163 +34,40 @@ class Team(models.Model):
     name = models.CharField(max_length=256, unique=True)
     visible = models.BooleanField(default=False)
 
-    # Cache of team's balances
-    balance = None
-
+    balance_cache = None
 
     ### Team balance ###
 
-    def get_balance(self, entity):
+    def get_balance(self, entity) -> 'Balance':
         """
         Returns balance of a entity or creates new if not yet defined
         :rtype Balance
         """
-        balance = self.get_balance_complete()
+        balance = self.get_balance_cache()
         if entity not in balance:
             balance[entity] = Balance(team=self, entity=entity)
 
         return balance[entity]
 
-    def get_balance_complete(self):
+    def get_balance_cache(self):
         """
         Returns team's complete balance
         :rtype dict(Entity, Balance)
         """
-        if not self.balance:
+        if not self.balance_cache:
             bal_set = Balance.objects.filter(team=self)
-            self.balance = { balance.entity:balance for balance in bal_set }
+            self.balance_cache = {balance.entity: balance for balance in bal_set}
 
-        return self.balance
+        return self.balance_cache
 
-
-    ### Trading and transferring entities
-
-    @transaction.atomic
-    def transfer(self, entities_amounts_in=[], entities_amounts_out=[], entities_amounts_check=[], \
-                 in_blocked=False, out_blocked=False, pretend=False):
+    def check_balance(self, quantities: List['Quantity']):
         """
-            Transfers entities between teams or system.
-
-            :param pretend: If set to True, checks whether the transaction is possible and returns bool.
-                            If set to False, perform the transaction and raise ValidationError.
-            :param entities_amounts_in: List of EntityAmounts which the team gives away
-            :param entities_amounts_out: List of EntityAmounts that the team accepts
-            :param entities_amounts_check: List of EntityAmounts that the team must own in the beginning of transfer
-            :param in_blocked: Incoming entites are blocked
-            :param out_blocked: Outgoing entities are blocked
+        Checks for (non-blocked) quantities of the team
+        :raises InvalidTransaction if there is not enough entities
         """
-
-        tmp_balance = deepcopy(self.get_balance_complete()) # we do all work on a copy of team's balance
-        licence_map = Entity.map_licences(tmp_balance.keys()) # inverse licence mapping
-
-        def get_tmp_balance(entity):
-            if entity not in tmp_balance:
-                tmp_balance[entity] = Balance(team=self, entity=entity, amount=0, blocked=0)
-            return tmp_balance[entity]
-
-        # add/subtracts amounts and check for non-negativity
-        def entity_count(ent_am, add):
-            balance = get_tmp_balance(ent_am.entity)
-            mul = 1 if add else -1
-            if (add and in_blocked) or (not add and out_blocked):
-                balance.blocked += mul*ent_am.amount
-                if balance.blocked < 0:
-                    raise ValidationError(str(ent_am.entity)+" is negative")
-            else:
-                balance.amount += mul*ent_am.amount
-                if balance.amount < 0:
-                    raise ValidationError(str(ent_am.entity)+" is negative")
-
-        def check_enough(ent_am):
-            if get_tmp_balance(ent_am.entity).amount < ent_am.amount:
-                raise ValidationError("Not enough %s" % ent_am.entity)
-
-        def licence_check_in(ent_am):
-            if ent_am.entity.licence:  # this entity depends on a licence
-                licence_bal = get_tmp_balance(ent_am.entity.licence)  # only non-block sum is counted
-                this_bal = get_tmp_balance(ent_am.entity)
-                if licence_bal.amount == 0 and this_bal.amount > 0:
-                    raise ValidationError("No licence for "+str(ent_am.entity))
-
-        def licence_check_out(ent_am):
-            if get_tmp_balance(ent_am.entity).amount==0 and ent_am.entity in licence_map: # this entity is a licence and we have none
-                for dep in licence_map[ent_am.entity]:
-                    dep_bal = get_tmp_balance(dep)
-                    if dep_bal.amount > 0:
-                        raise ValidationError("%s depends on %s" % (dep, ent_am.entity))
-
-        def commit(ent_am):
-            if not pretend:
-                get_tmp_balance(ent_am.entity).save()
-
-        # To save items to DB in the correct order, we need to distinguish between licence and dependent items.
-        # Here call "licences" all entities that have its licence entry None.
-        # Order of checking/saving:
-        #  outgoing non-licences
-        #  outgoing licences
-        #  incoming licences
-        #  incoming non-licences
-
-        out_sorted = sorted(entities_amounts_out, key=lambda ent_am: int(ent_am.entity.licence is None))
-        in_sorted = sorted(entities_amounts_in, key=lambda ent_am: int(ent_am.entity.licence is not None))
-
-        try:
-            for ent_am in entities_amounts_check:
-                check_enough(ent_am)
-
-            for ent_am in out_sorted:
-                entity_count(ent_am, add=False)
-                licence_check_out(ent_am)
-                commit(ent_am)
-
-            for ent_am in in_sorted:
-                entity_count(ent_am, add=True)
-                licence_check_in(ent_am)
-                commit(ent_am)
-
-            # save the cache back to the object
-            if not pretend:
-                self.balance = tmp_balance
-            return True
-        except ValidationError:
-            if pretend:
-                return False
-            else:
-                raise
-
-    def block(self, ent_am, pretend=False):
-        return self.transfer(pretend=pretend, entities_amounts_out=ent_am, entities_amounts_in=ent_am, in_blocked=True)
-
-    def unblock(self, ent_am, pretend=False):
-        return self.transfer(pretend=pretend, entities_amounts_out=ent_am, entities_amounts_in=ent_am, out_blocked=True)
-
-    @transaction.atomic
-    def block_auction(self, entity):
-        """
-        Raises auction counter of the entity (and blocks it if needed)
-        """
-        bal = self.get_balance(entity)
-        bal.auction_block_cnt += 1
-        bal.save()
-        self.balance[entity] = bal
-
-        if bal.auction_block_cnt==1:
-            self.block([ EntityAmount(entity, 1) ])
-
-    @transaction.atomic
-    def unblock_auction(self, entity):
-        bal = self.get_balance(entity)
-        do_unblock = False
-
-        if bal.auction_block_cnt > 0:
-            bal.auction_block_cnt -= 1
-            if bal.auction_block_cnt==0:
-                do_unblock = True
-        bal.save()
-        self.balance[entity] = bal
-
-        if do_unblock:
-            self.unblock([ EntityAmount(entity, 1) ])
+        for quantity in quantities:
+            if self.get_balance(quantity.entity).amount < quantity.amount:
+                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, quantity.entity)
 
     def __str__(self):
         return self.name
@@ -202,6 +80,7 @@ class Player(models.Model):
     def __str__(self):
         team_str = self.team.name if self.team else "no team"
         return self.user.username+" ("+team_str+")"
+
 
 class Status(models.Model):
     time = timedelta.TimedeltaField()
@@ -241,40 +120,16 @@ class Entity(models.Model):
     class Meta:
         verbose_name_plural = "Entities"
 
+
 class Balance(models.Model):
     team = models.ForeignKey(Team)
     entity = models.ForeignKey(Entity)
     amount = models.PositiveIntegerField(default=0)
     blocked = models.PositiveIntegerField(default=0)
-    auction_block_cnt = models.PositiveSmallIntegerField(default=0)
+    reservation_cnt = models.PositiveSmallIntegerField(default=0)
 
     def total(self):
         return self.amount + self.blocked
-
-    def clean(self):
-        """
-        Checks whether the team owns a licence for the item;
-        When the item itself is a licence, check the count of dependent items is zero
-
-        NOTE: When transferring a group of items, make sure licences are saved first -- otherwise, the following
-        constraint fails
-
-        XXX: this is unefficient, consider commenting out in production
-        """
-        licence = self.entity.licence
-        have_licence = False
-        try:
-            if licence is None or self.team.get_balance(licence).total() > 0:
-                have_licence = True
-        except KeyError:
-            pass
-        if self.total() > 0 and not have_licence:
-            raise ValidationError("Cannot own %s, licence not present" % self.entity)
-
-        if self.amount==0: # blocked licences don't count
-            for entity, balance in self.team.get_balance_complete().items():
-                if entity.licence==self.entity and balance.amount > 0:
-                    raise ValidationError("Cannot set %s amount to zero, %s depends on it" % (self, entity))
 
     def __str__(self):
         return "%s: %s (%d + %d blocked) " % (self.team.name, self.entity.name, self.amount, self.blocked)
@@ -283,7 +138,7 @@ class Balance(models.Model):
         unique_together = ("team", "entity")
 
 
-class EntityAmount:
+class Quantity:
     """
     Helper class for pairs of entity and amount
     """
@@ -298,3 +153,98 @@ class EntityAmount:
         self.amount = amount
 
 
+class Transaction:
+
+    def __init__(self, team: Team):
+        self.team = team
+        self.balance_cache = deepcopy(team.get_balance_cache())
+
+    def add(self, quantities: List[Quantity]):
+        for quantity in quantities:
+            self.__get_balance(quantity.entity).amount += quantity.amount
+
+    def add_blocked(self, quantities: List[Quantity]):
+        for quantity in quantities:
+            self.__get_balance(quantity.entity).blocked += quantity.amount
+
+    def remove(self, quantities: List[Quantity]):
+        for quantity in quantities:
+            self.__get_balance(quantity.entity).amount -= quantity.amount
+
+    def remove_blocked(self, quantities: List[Quantity]):
+        for quantity in quantities:
+            self.__get_balance(quantity.entity).blocked -= quantity.amount
+
+    def reserve(self, entities: List[Entity]):
+        for entity in entities:
+            self.__get_balance(entity).reservation_cnt += 1
+
+    def unreserve(self, entities: List[Entity]):
+        for entity in entities:
+            balance = self.__get_balance(entity)
+            balance.reservation_cnt = max(balance.reservation_cnt-1, 0)
+
+    def check_valid(self):
+        """
+        Checks whether all subjects have a licence and their count is non-negative.
+        :raises InvalidTransaction in case of failure
+        """
+
+        for balance in self.balance_cache.values():
+            if balance.amount < 0 or balance.blocked < 0:
+                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
+            licence = balance.entity.licence
+            need_licence = licence is not None and balance.total() > 0
+            if need_licence and self.__get_balance(licence).amount <= 0:
+                raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
+            if balance.reservation_cnt > 0 and balance.amount <= 1:
+                raise InvalidTransaction(InvalidTransaction.ERR_RESERVED, balance.entity)
+
+    @transaction.atomic
+    def commit(self):
+        """
+        Saves the updated balance back to the database.
+        NOTE: For committing more than one transaction at the time, use Transaction.commit_two -- otherwise,
+        you may poison your balance cache.
+        :raises TransactionError in case the transaction is invalid
+        """
+        self.check_valid()
+
+        for balance in self.balance_cache.values():
+            balance.save()
+        self.team.balance_cache = self.balance_cache
+
+    @staticmethod
+    @transaction.atomic
+    def commit_two(transaction1, transaction2):
+
+        transaction1.check_valid()
+        transaction2.check_valid()
+        transaction1.commit()
+        transaction2.commit()
+
+    def __get_balance(self, entity: Entity) -> Balance:
+        if entity not in self.balance_cache:
+            self.balance_cache[entity] = Balance(entity=entity, team=self.team)
+        return self.balance_cache[entity]
+
+
+class InvalidTransaction(Exception):
+
+    ERR_NOT_ENOUGH = 1
+    ERR_NO_LICENCE = 2
+    ERR_RESERVED = 3
+
+    def __init__(self, error, entity):
+        self.error = error
+        self.entity = entity
+
+    def __repr__(self):
+        if self.error == self.ERR_NOT_ENOUGH:
+            return "Chybí mi "+self.entity
+        elif self.error == self.ERR_NO_LICENCE:
+            return "Nemám licenci pro "+self.entity
+        elif self.error == self.ERR_RESERVED:
+            return self.entity+" je zarezervován, nemůžete ho úplně prodat"
+        else:
+            return "Nějaká podivná chyba"
