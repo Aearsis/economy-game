@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.forms import ModelForm
+from .forms import *
 from core.models import *
 from ekonomicka.utils import *
 
@@ -7,11 +7,6 @@ from ekonomicka.utils import *
 @team_required
 def team(request):
     return render(request, "core/team.html", { 'team' : request.user.player.team })
-
-class TeamForm(ModelForm):
-    class Meta:
-        model = Team
-        fields = [ 'name', 'members' ]
 
 @player_required
 def create_team(request, next = "/team"):

@@ -8,7 +8,6 @@ def player_required(view_func):
     """
     player_decorator = user_passes_test(
         lambda u: hasattr(u, 'player'),
-        login_url = '/accounts/login/'
     )
     return player_decorator(view_func)
 

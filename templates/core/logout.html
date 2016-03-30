@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block content %}
+
+<div class="alert alert-success">Byl jsi odhlášen.</div>
+
+<p><a href="{% url 'login' %}">Přihlásit se znovu.</a></p>
+
+{% endblock %}

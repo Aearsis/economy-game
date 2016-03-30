@@ -15,13 +15,16 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin, auth
+from core import forms
 import core.views
+import django.contrib.auth.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^recipes/', include('recipes.urls')),
     url(r'^team/create/', core.views.create_team, name = 'team/create'),
     url(r'^team/', core.views.team, name = 'team'),
-    url(r'^accounts/', include('django.contrib.auth.urls'), {'template_name' : 'core/login.html' }, name = 'login'),
+    url(r'^login/$', auth.views.login, {'template_name' : 'core/login.html', 'authentication_form' : forms.AuthenticationForm }, name='login'),
+    url(r'^logout/$', auth.views.logout, { 'template_name' : 'core/logout.html' }, name='logout'),
     url(r'^$', core.views.team),
 ]
