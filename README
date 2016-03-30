@@ -1,6 +1,7 @@
 Potřebné moduly:
 
 django-timedelta
+django-bootstrap-form
 
 Vyrobte si vlastního admin uživatele pomocí:
 	./manage.py createsuperuser
