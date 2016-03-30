@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+{% block title %}Tým {{ team.name }}{% endblock %}
+{% block content %}
+
+<form method="post" role="form">
+    <legend>Vytvoření týmu</legend>
+    <p>Ještě než se pustíte do hry, řekněte nám, jak se váš tým bude jmenovat a kdo je jeho členem. Ani jedno později nemůžete změnit, rozmýšlejte proto dobře.</p>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    {{ form|bootstrap }}
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Vytvořit tým</button>
+    </div>
+</form>
+
+
+{% endblock %}

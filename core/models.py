@@ -29,10 +29,16 @@ class Game(models.Model):
     def to_date(self, delta):
         return self.started + delta
 
+    class Meta:
+        permissions = (
+            ("play_game", "Can play the game as a team"),
+        )
+
 
 class Team(models.Model):
-    name = models.CharField(max_length=256, unique=True)
-    visible = models.BooleanField(default=False)
+    name = models.CharField(max_length=256, unique=True, verbose_name="Název týmu")
+    visible = models.BooleanField(default=True)
+    members = models.TextField(verbose_name="Seznam členů")
 
     balance_cache = None
 

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block content %}
+
+<h3>Přihlášení</h3>
+
+{% if form.errors %}
+<div class="alert alert-warning">Uživatelské jméno nebo heslo je nesprávné.</div>
+{% endif %}
+
+{% if next %}
+    {% if user.is_authenticated %}
+    <div class="alert alert-danger">K této akci nemáš potřebné právo. Nechtěl jsi se přihlásit za někoho jiného?</div>
+    {% else %}
+    <p>Od orgů jste dostali lísteček se jménem a heslem. Nyní je ten správný čas jej použít.</p>
+    {% endif %}
+{% endif %}
+
+<form method="post" role="form" action="{% url 'login' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    {{ form|bootstrap }}
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Přihlásit</button>
+    </div>
+</form>
+
+
+{% endblock %}
