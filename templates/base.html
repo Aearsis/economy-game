@@ -14,9 +14,15 @@
       <a class="navbar-brand" href="#">Ekonomická hra</a>
     </div>
     <div class="container-fluid">
-        <ul class="nav navbar-nav navbar-right">
+        <ul class="nav navbar-nav navbar">
             {% if user.is_authenticated %}
+                {% if perms.core.can_play_game %}
                 <li><a href="{% url 'team' %}">Informace o týmu</a></li>
+                {% endif %}
+                {% if perms.core.can_control_game %}
+                <li><a href="{% url 'control' %}">Ovládací panel</a></li>
+                {% endif %}
+                <li><a href="{% url 'dashboard' %}">Nástěnka</a></li>
                 <li><a href="{% url 'logout' %}">Odhlásit</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Přihlásit se</a></li>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Ovládací panel{% endblock %}
+{% block content %}
+
+<h2>Ovládací panel</h2>
+
+<div class="col-sm-4">
+    <div class="well">
+        <h3>Hra</h3>
+        {% if game.has_started %}
+            <p>Aktuální herní čas je {{ game.game_time }}</p>
+        {% else %}
+            <p>Hra ještě nezačala.</p>
+            <a href="{% url 'control/start' %}" class="btn btn-danger">Zahájit hru</a>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

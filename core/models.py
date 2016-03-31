@@ -9,29 +9,52 @@ from typing import List
 # Single row to hold game state
 class Game(models.Model):
     started = models.DateTimeField(null=True, blank=True)
+    length = timedelta.TimedeltaField()
 
     @staticmethod
     def the_row():
-        return Game.objects.get(id=1)
+        return Game.objects.get()
 
-    def has_started(self):
-        return self.started is not None
+    @staticmethod
+    def has_started():
+        return Game.the_row().started is not None
 
-    def time_passed(self, delta):
-        return self.started + delta <= timezone.now()
+    @staticmethod
+    def time_passed(delta):
+        if not Game.has_started():
+            return False
+        return Game.the_row().started + delta <= timezone.now()
 
-    def game_time(self):
-        return timezone.now() - self.started
+    @staticmethod
+    def game_time():
+        if not Game.has_started():
+            return None
+        return timezone.now() - Game.the_row().started
 
-    def to_delta(self, date):
-        return date-self.started
+    @staticmethod
+    def to_delta(date):
+        if not Game.has_started():
+            return None
+        return date-Game.the_row().started
 
-    def to_date(self, delta):
-        return self.started + delta
+    @staticmethod
+    def to_date(delta):
+        if not Game.has_started():
+            return None
+        return Game.the_row().started + delta
+
+    @staticmethod
+    def start_now():
+        if Game.has_started():
+            raise Exception('Hra už běží.')
+        g = Game.the_row()
+        g.started = timezone.now()
+        g.save()
 
     class Meta:
         permissions = (
             ("play_game", "Can play the game as a team"),
+            ("control_game", "Can control the game through control panel"),
         )
 
 
@@ -89,12 +112,34 @@ class Player(models.Model):
 
 
 class Status(models.Model):
+    INFO = "info"
+    WARNING = "warning"
+    DANGER = "danger"
+    SUCCESS = "success"
+    TYPES = (
+        (INFO, "Info (modrá)"),
+        (WARNING, "Warning (žlutá)"),
+        (DANGER, "Danger (červená)"),
+        (SUCCESS, "Success (zelená)"),
+    )
     time = timedelta.TimedeltaField()
     team = models.ForeignKey(Team, null=True, blank=True)
+    type = models.CharField(max_length=32, choices=TYPES)
     message = models.TextField()
 
     def __str__(self):
         return "(%s) %s" % (self.team.name if self.team else "--", self.message)
+
+    @staticmethod
+    def visible():
+        """
+        Returns all statuses that are visible just now, and the time that means "now".
+        """
+        if not Game.has_started():
+            return ([], 0)
+        now = Game.game_time()
+        data = Status.objects.filter(time__lte = now).order_by('-time')
+        return (data, now)
 
     class Meta:
         verbose_name_plural = "Statuses"

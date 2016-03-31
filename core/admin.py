@@ -7,6 +7,8 @@ class BalancesInline(admin.TabularInline):
 class TeamAdmin(admin.ModelAdmin):
     inlines = [ BalancesInline ]
 
+admin.site.register(Game)
+
 admin.site.register(Player)
 admin.site.register(Team, TeamAdmin)
 
