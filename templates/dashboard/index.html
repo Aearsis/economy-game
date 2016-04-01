@@ -9,14 +9,38 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container-fluid">
     {% block content %}
 
-    {% for status in data %}
-        <div class="alert alert-{{ status.type }}">{{ status.message }}</div>
-    {% empty %}
-        <div class="alert alert-info">Prosím vyčkejte začátku hry.</div>
-    {% endfor %}
+    <div class="col-lg-6">
+        {% for status in statuses %}
+            <div class="alert alert-{{ status.type }}">{{ status.message }}</div>
+        {% empty %}
+            <div class="alert alert-info">Prosím vyčkejte začátku hry.</div>
+        {% endfor %}
+    </div>
+    <div class="col-lg-6">
+        <table class="table">
+            <thead>
+            <tr>
+                <th></th>
+                {% for team in teams %}
+                <th class="text-center">{{ team.name }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+                {% for row in table %}
+                <tr>
+                    <th class="text-right">{{ row.0.entity.name }}</th>
+                    {% for balance in row %}
+                    <td class="text-center">{{ balance.total }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% endblock %}
 </div>

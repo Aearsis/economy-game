@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -56,7 +58,6 @@ class Game(models.Model):
             ("play_game", "Can play the game as a team"),
             ("control_game", "Can control the game through control panel"),
         )
-
 
 class Team(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name="Název týmu")

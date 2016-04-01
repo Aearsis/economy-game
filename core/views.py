@@ -29,7 +29,15 @@ def create_team(request, next = "/team"):
 
 def dashboard(request):
     data = Status.visible()
-    return render(request, 'dashboard/index.html', { 'data' : data[0], 'refreshed' : data[1] })
+    entities = Entity.objects.order_by("name")
+    teams = Team.objects.order_by("name")
+    table = [[team.get_balance(entity) for team in teams] for entity in entities]
+    return render(request, 'dashboard/index.html', {
+        'statuses' : data[0],
+        'refreshed' : data[1],
+        'teams' : teams,
+        'table' : table,
+    })
 
 
 @permission_required("control_game")
