@@ -151,6 +151,9 @@ class Entity(models.Model):
     units = models.CharField(max_length=128,blank=True)
     licence = models.ForeignKey("self", null=True, blank=True)
 
+    is_licence = models.BooleanField(default=False)
+    is_strategic = models.BooleanField(default=False)
+
     @staticmethod
     def map_licences(entities):
         """
@@ -166,8 +169,25 @@ class Entity(models.Model):
 
         return map
 
+    def css_class(self):
+        classes = []
+        if self.is_strategic:
+            classes.append("ent-strategic")
+        if self.is_licence:
+            classes.append("ent-licence")
+        if self.licence != None:
+            classes.append("ent-needs-licence")
+        return " ".join(classes)
+
     def __str__(self):
-        return self.name
+        classes = []
+        if self.is_strategic:
+            classes.append("(S) ")
+        if self.is_licence:
+            classes.append("(L) ")
+        if self.licence != None:
+            classes.append("(D) ")
+        return "".join(classes) + self.name
 
     class Meta:
         verbose_name_plural = "Entities"

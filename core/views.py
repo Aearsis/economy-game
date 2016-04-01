@@ -7,7 +7,10 @@ from ekonomicka.utils import *
 
 @team_required
 def team(request):
-    return render(request, "core/team.html", { 'team' : request.user.player.team })
+    return render(request, "core/team.html", {
+        'team' : request.user.player.team,
+        'inventory' : Balance.objects.filter(team = request.user.player.team).order_by('entity__name'),
+    })
 
 @player_required
 def create_team(request, next = "/team"):

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
     <link href = "{% static 'css/bootstrap.css' %}" rel = "stylesheet">
+    <link href = "{% static 'css/main.css' %}" rel = "stylesheet">
     <title>{% block title %}Ekonomická hra{% endblock %}</title>
 </head>
 <body>
@@ -20,21 +21,21 @@
         {% endfor %}
     </div>
     <div class="col-lg-6">
-        <table class="table">
+        <table class="table table-balance">
             <thead>
             <tr>
                 <th></th>
                 {% for team in teams %}
-                <th class="text-center">{{ team.name }}</th>
+                <th>{{ team.name }}</th>
                 {% endfor %}
             </tr>
             </thead>
             <tbody>
                 {% for row in table %}
-                <tr>
-                    <th class="text-right">{{ row.0.entity.name }}</th>
+                <tr class="{{ row.0.entity.css_class }}">
+                    <th>{{ row.0.entity.name }}</th>
                     {% for balance in row %}
-                    <td class="text-center">{{ balance.total }}</td>
+                    <td>{{ balance.total }}</td>
                     {% endfor %}
                 </tr>
                 {% endfor %}

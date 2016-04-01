@@ -1,0 +1,22 @@
+
+.table-balance tr td,
+.table-balance tr th {
+    text-align: center;
+}
+
+.table-balance tr td:first-child,
+.table-balance tr th:first-child {
+    text-align: right;
+}
+
+tr.ent-needs-licence {
+   background-color: #fd8;
+}
+
+tr.ent-licence {
+   background-color: #cf0;
+}
+
+tr.ent-strategic {
+   background-color: #acf;
+}
