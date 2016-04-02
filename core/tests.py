@@ -91,5 +91,11 @@ class TransactionTests(TestCase):
                 t.assertValidState()
                 t.add(self.seller, self.safe, 1000)
 
+    def test_propagate(self):
+        class MyException(Exception):
+            pass
 
-
+        with self.assertRaises(MyException):
+            with Transaction() as t:
+                t.remove(self.seller, self.safe, 50000)
+                raise MyException

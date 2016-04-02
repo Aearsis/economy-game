@@ -310,7 +310,10 @@ class Transaction:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.commit()
+        if exc_type is None:
+            self.commit()
+        else:
+            raise
 
 class InvalidTransaction(Exception):
     ERR_NOT_ENOUGH = 1
