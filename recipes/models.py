@@ -1,6 +1,7 @@
 from django.db import models
 from core.models import *
 
+
 class Recipe(models.Model):
     name = models.TextField()
     description = models.TextField()
@@ -13,8 +14,7 @@ class Recipe(models.Model):
         creates = []
         consumes = []
 
-        ingredients = Ingredient.objects.filter(recipe=self)
-        for ingredient in ingredients:
+        for ingredient in self.recipe_set.all():
             arr = []
             if ingredient.type == Ingredient.NEED:
                 arr = needs
@@ -34,18 +34,19 @@ class Recipe(models.Model):
         Apply the recipe for the team.
         :raises ValidationError when there is not enough entities
         """
-
         (needs, creates, consumes) = self.ingredients()
-
-        team.check_balance(needs)
-
-        t = Transaction(team)
-        t.add(creates)
-        t.remove(consumes)
-        t.commit()
+        with Transaction() as t:
+            for q in needs:
+                t.needs(team, q.entity, q.amount)
+            for q in consumes:
+                t.remove(team, q.entity, q.amount)
+            t.assertValidState()
+            for q in creates:
+                t.add(team, q.entity, q.amount)
 
     def __str__(self):
         return "%s: %s" % (self.name, self.description)
+
 
 class Ingredient(models.Model):
     CONSUME = 0
@@ -63,4 +64,3 @@ class Ingredient(models.Model):
 
     class Meta:
         unique_together = ("recipe", "entity", "type")
-

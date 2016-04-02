@@ -37,7 +37,7 @@ class Game(models.Model):
     def to_delta(date):
         if not Game.has_started():
             return None
-        return date-Game.the_row().started
+        return date - Game.the_row().started
 
     @staticmethod
     def to_date(delta):
@@ -59,45 +59,45 @@ class Game(models.Model):
             ("control_game", "Can control the game through control panel"),
         )
 
+
 class Team(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name="Název týmu")
     visible = models.BooleanField(default=True)
     members = models.TextField(verbose_name="Seznam členů")
-
-    balance_cache = None
-
-    ### Team balance ###
 
     def get_balance(self, entity) -> 'Balance':
         """
         Returns balance of a entity or creates new if not yet defined
         :rtype Balance
         """
-        balance = self.get_balance_cache()
-        if entity not in balance:
-            balance[entity] = Balance(team=self, entity=entity)
+        if not hasattr(self, "cache"):
+            self.cache = self.balance_set.all()
+        return self.balance_set.get_or_create(entity=entity)[0]
 
-        return balance[entity]
+    def has_entity(self, entity):
+        return self.get_balance(entity).total() > 0
 
-    def get_balance_cache(self):
-        """
-        Returns team's complete balance
-        :rtype dict(Entity, Balance)
-        """
-        if not self.balance_cache:
-            bal_set = Balance.objects.filter(team=self)
-            self.balance_cache = {balance.entity: balance for balance in bal_set}
+    def assert_valid(self):
+        """ If the current balance state is not valid, throws an exception. """
+        for balance in self.balance_set.all():
+            if balance.amount < 0 or balance.blocked < 0:
+                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
+            licence = balance.entity.licence
+            need_licence = licence is not None and balance.total() > 0
+            if need_licence and not self.has_entity(licence):
+                raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
 
-        return self.balance_cache
+    def is_valid(self):
+        """ Returns True if team's balance is in valid state
 
-    def check_balance(self, quantities: List['Quantity']):
+        Catching exceptions is overkill, but this way we avoid duplicating code.
         """
-        Checks for (non-blocked) quantities of the team
-        :raises InvalidTransaction if there is not enough entities
-        """
-        for quantity in quantities:
-            if self.get_balance(quantity.entity).amount < quantity.amount:
-                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, quantity.entity)
+        try:
+            self.assert_valid()
+        except InvalidTransaction:
+            return False
+        else:
+            return True
 
     def __str__(self):
         return self.name
@@ -109,7 +109,7 @@ class Player(models.Model):
 
     def __str__(self):
         team_str = self.team.name if self.team else "no team"
-        return self.user.username+" ("+team_str+")"
+        return self.user.username + " (" + team_str + ")"
 
 
 class Status(models.Model):
@@ -139,7 +139,7 @@ class Status(models.Model):
         if not Game.has_started():
             return ([], 0)
         now = Game.game_time()
-        data = Status.objects.filter(time__lte = now).order_by('-time')
+        data = Status.objects.filter(time__lte=now).order_by('-time')
         return (data, now)
 
     class Meta:
@@ -148,7 +148,7 @@ class Status(models.Model):
 
 class Entity(models.Model):
     name = models.CharField(max_length=128)
-    units = models.CharField(max_length=128,blank=True)
+    units = models.CharField(max_length=128, blank=True)
     licence = models.ForeignKey("self", null=True, blank=True)
 
     is_licence = models.BooleanField(default=False)
@@ -196,15 +196,18 @@ class Entity(models.Model):
 class Balance(models.Model):
     team = models.ForeignKey(Team)
     entity = models.ForeignKey(Entity)
-    amount = models.PositiveIntegerField(default=0)
-    blocked = models.PositiveIntegerField(default=0)
-    reservation_cnt = models.PositiveSmallIntegerField(default=0)
+    amount = models.IntegerField(default=0)
+    blocked = models.IntegerField(default=0)
 
     def total(self):
         return self.amount + self.blocked
 
     def __str__(self):
         return "%s: %s (%d + %d blocked) " % (self.team.name, self.entity.name, self.amount, self.blocked)
+
+    def set_amount(self, amount: int):
+        self.amount = amount
+        return self
 
     class Meta:
         unique_together = ("team", "entity")
@@ -226,86 +229,92 @@ class Quantity:
 
 
 class Transaction:
+    class Operation:
+        def __init__(self, team: Team, entity: Entity, amount=0, block=0):
+            self.team = team
+            self.entity = entity
+            self.amount = amount
+            self.block = block
 
-    def __init__(self, team: Team):
-        self.team = team
-        self.balance_cache = deepcopy(team.get_balance_cache())
+        def commit(self):
+            balance = self.team.get_balance(self.entity)
+            balance.amount += self.amount
+            balance.blocked += self.block
+            balance.save()
 
-    def add(self, quantities: List[Quantity]):
-        for quantity in quantities:
-            self.__get_balance(quantity.entity).amount += quantity.amount
+        def __repr__(self):
+            return "%r.%r += (%i, %i)" % (self.team, self.entity, self.amount, self.block)
 
-    def add_blocked(self, quantities: List[Quantity]):
-        for quantity in quantities:
-            self.__get_balance(quantity.entity).blocked += quantity.amount
+    def __init__(self):
+        self.phases = []
+        self.operations = []
+        self.reservations = []
 
-    def remove(self, quantities: List[Quantity]):
-        for quantity in quantities:
-            self.__get_balance(quantity.entity).amount -= quantity.amount
+    def block(self, team: Team, entity: Entity, amount: int):
+        self.operations.append(Transaction.Operation(team, entity, amount=-amount, block=amount))
+        return self
 
-    def remove_blocked(self, quantities: List[Quantity]):
-        for quantity in quantities:
-            self.__get_balance(quantity.entity).blocked -= quantity.amount
+    def unblock(self, team: Team, entity: Entity, amount: int):
+        return self.block(team, entity, -amount)
 
-    def reserve(self, entities: List[Entity]):
-        for entity in entities:
-            self.__get_balance(entity).reservation_cnt += 1
+    def add(self, team: Team, entity: Entity, amount: int):
+        self.operations.append(Transaction.Operation(team, entity, amount=amount))
+        return self
 
-    def unreserve(self, entities: List[Entity]):
-        for entity in entities:
-            balance = self.__get_balance(entity)
-            balance.reservation_cnt = max(balance.reservation_cnt-1, 0)
+    def remove(self, team: Team, entity: Entity, amount: int):
+        return self.add(team, entity, -amount)
 
-    def check_valid(self):
-        """
-        Checks whether all subjects have a licence and their count is non-negative.
-        :raises InvalidTransaction in case of failure
-        """
+    def move(self, team_from: Team, team_to: Team, entity: Entity, amount: int):
+        self.remove(team_from, entity, amount)
+        self.add(team_to, entity, amount)
+        return self
 
-        for balance in self.balance_cache.values():
-            if balance.amount < 0 or balance.blocked < 0:
-                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
-            licence = balance.entity.licence
-            need_licence = licence is not None and balance.total() > 0
-            if need_licence and self.__get_balance(licence).amount <= 0:
-                raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
-            if balance.reservation_cnt > 0 and balance.amount <= 1:
-                raise InvalidTransaction(InvalidTransaction.ERR_RESERVED, balance.entity)
+    def needs(self, team: Team, entity: Entity, amount: int):
+        self.reservations.append((team, entity, amount))
+        return self
+
+    def assertValidState(self):
+        self.phases.append((self.operations, self.reservations))
+        self.operations = []
+        self.reservations = []
 
     @transaction.atomic
     def commit(self):
         """
         Saves the updated balance back to the database.
-        NOTE: For committing more than one transaction at the time, use Transaction.commit_two -- otherwise,
-        you may poison your balance cache.
-        :raises TransactionError in case the transaction is invalid
+        Consider this usage:
+            with Transaction() as t:
+                t.unblock(team, entity, amount)
+                t.add(team, entity, amount)
+        :raises TransactionError in case the transaction is invalidreservations
         """
-        self.check_valid()
+        self.assertValidState()
 
-        for balance in self.balance_cache.values():
-            balance.save()
-        self.team.balance_cache = self.balance_cache
+        for (operations, reservations) in self.phases:
+            teams = set()
 
-    @staticmethod
-    @transaction.atomic
-    def commit_two(transaction1, transaction2):
+            for op in operations:
+                op.commit()
+                teams.add(op.team)
 
-        transaction1.check_valid()
-        transaction2.check_valid()
-        transaction1.commit()
-        transaction2.commit()
+            for (team, entity, amount) in reservations:
+                if team.get_balance(entity).total() < amount:
+                    raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, entity)
 
-    def __get_balance(self, entity: Entity) -> Balance:
-        if entity not in self.balance_cache:
-            self.balance_cache[entity] = Balance(entity=entity, team=self.team)
-        return self.balance_cache[entity]
+            for team in teams:
+                team.assert_valid()
 
+        self.phases = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.commit()
 
 class InvalidTransaction(Exception):
-
     ERR_NOT_ENOUGH = 1
     ERR_NO_LICENCE = 2
-    ERR_RESERVED = 3
 
     def __init__(self, error, entity):
         self.error = error
@@ -313,10 +322,8 @@ class InvalidTransaction(Exception):
 
     def __repr__(self):
         if self.error == self.ERR_NOT_ENOUGH:
-            return "Chybí mi "+self.entity
+            return "Nemáš dostatek " + self.entity
         elif self.error == self.ERR_NO_LICENCE:
-            return "Nemám licenci pro "+self.entity
-        elif self.error == self.ERR_RESERVED:
-            return self.entity+" je zarezervován, nemůžete ho úplně prodat"
+            return "Nemáš licenci pro " + self.entity
         else:
             return "Nějaká podivná chyba"

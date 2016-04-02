@@ -8,30 +8,28 @@
 
 <div class="alert alert-danger">TODO nápověda</div>
 
+<hr>
+<h3>Inventář</h3>
 
-<h2>Inventář</h2>
-
-<div class="col-lg-6">
-    <table class="table table-balance">
-        <thead>
-        <tr>
-            <th>Předmět</th>
-            <th>Disponibilní množství</th>
-            <th>Blokované množství</th>
-            <th>Celkové množství</th>
+<table class="table table-balance">
+    <thead>
+    <tr>
+        <th>Předmět</th>
+        <th>Disponibilní množství</th>
+        <th>Blokované množství</th>
+        <th>Celkové množství</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for balance in inventory %}
+        <tr class="{{ balance.entity.css_class }}">
+            <th>{{ balance.entity.name }}</th>
+            <td>{{ balance.amount }}</td>
+            <td>{{ balance.blocked }}</td>
+            <th>{{ balance.total }}</th>
         </tr>
-        </thead>
-        <tbody>
-            {% for balance in inventory %}
-            <tr class="{{ balance.entity.css_class }}">
-                <th>{{ balance.entity.name }}</th>
-                <td>{{ balance.amount }}</td>
-                <td>{{ balance.blocked }}</td>
-                <th>{{ balance.total }}</th>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}
