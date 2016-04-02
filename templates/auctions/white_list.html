@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for auc in auctions %}
+    <div class="col-sm-4 well">
+        {{ auc }}
+    </div>
+{% endfor %}
+
+{% endblock %}

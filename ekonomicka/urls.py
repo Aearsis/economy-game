@@ -21,6 +21,7 @@ import django.contrib.auth.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^recipes/', include('recipes.urls')),
+    url(r'^recipe/', include('recipes.urls')),
+    url(r'^auction/', include('auctions.urls')),
     url(r'^', include('core.urls')),
 ]
