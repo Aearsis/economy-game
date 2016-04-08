@@ -2,10 +2,22 @@
 
 {% block content %}
 
-{% for auc in auctions %}
+<div class="row">
+    {% for auc in auctions %}
+        <div class="col-sm-4 well">
+            {{ auc }}
+        </div>
+        {% empty %}
+        <div class="col-sm-12">
+            <div class="alert alert-info">
+                Zatím zde nejsou žádné aukce.
+            </div>
+        </div>
+    {% endfor %}
     <div class="col-sm-4 well">
-        {{ auc }}
+        <a href="{% url "create" %}" class="btn btn-block btn-success">
+            <i class="glyphicon glyphicon-plus"></i> Vytvořit aukci</a>
     </div>
-{% endfor %}
+</div>
 
 {% endblock %}

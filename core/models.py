@@ -15,7 +15,7 @@ class Game(models.Model):
 
     @staticmethod
     def the_row():
-        return Game.objects.get()
+        return Game.objects.get_or_create()[0]
 
     @staticmethod
     def has_started():
@@ -70,12 +70,10 @@ class Team(models.Model):
         Returns balance of a entity or creates new if not yet defined
         :rtype Balance
         """
-        if not hasattr(self, "cache"):
-            self.cache = self.balance_set.all()
         return self.balance_set.get_or_create(entity=entity)[0]
 
     def has_entity(self, entity):
-        return self.get_balance(entity).total() > 0
+        return self.get_balance(entity).total().amount > 0
 
     def assert_valid(self):
         """ If the current balance state is not valid, throws an exception. """
@@ -83,7 +81,8 @@ class Team(models.Model):
             if balance.amount < 0 or balance.blocked < 0:
                 raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
             licence = balance.entity.licence
-            need_licence = licence is not None and balance.total() > 0
+            # we need to check only for non-blocked amount of licences
+            need_licence = licence is not None and balance.total().amount > 0
             if need_licence and not self.has_entity(licence):
                 raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
 
@@ -193,6 +192,25 @@ class Entity(models.Model):
         verbose_name_plural = "Entities"
 
 
+class Quantity:
+    """
+    Helper class for pairs of entity and amount
+    """
+
+    def __repr__(self):
+        return "%s (%s %s)" % (self.entity, self.amount, self.entity.units)
+
+    def __str__(self):
+        return "%i %s" % (self.amount, self.entity.units)
+
+    def __int__(self):
+        return self.amount
+
+    def __init__(self, entity, amount):
+        self.entity = entity
+        self.amount = amount
+
+
 class Balance(models.Model):
     team = models.ForeignKey(Team)
     entity = models.ForeignKey(Entity)
@@ -200,10 +218,11 @@ class Balance(models.Model):
     blocked = models.IntegerField(default=0)
 
     def total(self):
-        return self.amount + self.blocked
+        return Quantity(self.entity, self.amount + self.blocked)
 
     def __str__(self):
-        return "%s: %s (%d + %d blocked) " % (self.team.name, self.entity.name, self.amount, self.blocked)
+        return "%s: %s (%d + %d blocked) %s" % (
+        self.team.name, self.entity.name, self.amount, self.blocked, self.entity.units)
 
     def set_amount(self, amount: int):
         self.amount = amount
@@ -211,21 +230,6 @@ class Balance(models.Model):
 
     class Meta:
         unique_together = ("team", "entity")
-
-
-class Quantity:
-    """
-    Helper class for pairs of entity and amount
-    """
-    entity = Entity()
-    amount = 0
-
-    def __repr__(self):
-        return "%s (%s %s)" % (self.entity, self.amount, self.entity.units)
-
-    def __init__(self, entity, amount):
-        self.entity = entity
-        self.amount = amount
 
 
 class Transaction:
@@ -298,7 +302,7 @@ class Transaction:
                 teams.add(op.team)
 
             for (team, entity, amount) in reservations:
-                if team.get_balance(entity).total() < amount:
+                if team.get_balance(entity).total().amount < amount:
                     raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, entity)
 
             for team in teams:
@@ -312,8 +316,7 @@ class Transaction:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is None:
             self.commit()
-        else:
-            raise
+
 
 class InvalidTransaction(Exception):
     ERR_NOT_ENOUGH = 1

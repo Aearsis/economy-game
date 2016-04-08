@@ -24,9 +24,9 @@
         {% for balance in inventory %}
         <tr class="{{ balance.entity.css_class }}">
             <th>{{ balance.entity.name }}</th>
-            <td>{{ balance.amount }}</td>
-            <td>{{ balance.blocked }}</td>
-            <th>{{ balance.total }}</th>
+            <td>{{ balance.amount }}{{ balance.unit }}</td>
+            <td>{{ balance.blocked }}{{ balance.unit }}</td>
+            <th>{{ balance.total }}{{ balance.unit }}</th>
         </tr>
         {% endfor %}
     </tbody>

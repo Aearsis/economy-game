@@ -99,3 +99,16 @@ class TransactionTests(TestCase):
             with Transaction() as t:
                 t.remove(self.seller, self.safe, 50000)
                 raise MyException
+
+    def test_return(self):
+        self.seller.get_balance(self.licence).set_amount(1).save()
+        self.seller.get_balance(self.unsafe).set_amount(10).save()
+
+        with Transaction() as t:
+            t.block(self.seller, self.unsafe, 5)
+
+        with self.assertRaises(InvalidTransaction):
+            with Transaction() as t:
+                t.remove(self.seller, self.unsafe, 5)
+                t.remove(self.seller, self.licence, 1)
+

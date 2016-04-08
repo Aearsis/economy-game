@@ -54,6 +54,15 @@ def control_start(request):
     Game.start_now()
     return redirect(reverse("control"))
 
+@team_required
+def wait_to_start(request):
+    if (Game.has_started()):
+        if 'next' in request.GET:
+            return redirect(request.GET['next'])
+        else:
+            return redirect(reverse("team"))
+    else:
+        return render(request, "core/wait.html")
 
 def router(request):
     """

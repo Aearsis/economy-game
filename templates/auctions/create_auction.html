@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+{% block content %}
+
+<h2>Vytvořit aukci</h2>
+
+<form action="{% url "create" %}" method="post">
+    {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+    {% csrf_token %}
+    <fieldset>
+        <legend>Obecné</legend>
+        {{ form.timespan|bootstrap }}
+        {{ form.description|bootstrap }}
+    </fieldset>
+    <fieldset>
+        <legend>Aukce</legend>
+        <p>V aukci se o vždy jednu položku soutěží. Je na vás, jestli chcete nějakého předmětu získat co nejvíce, a nebo zaplatit co nejméně.</p>
+        <div class="row">
+            <div class="col-md-2">
+                {{ form.var_direction|bootstrap_inline }}
+            </div>
+            <div class="col-md-2">
+                {{ form.var_min|bootstrap_inline }}
+            </div>
+            <div class="col-md-4">
+                {{ form.var_entity|bootstrap_inline }}
+            </div>
+            <div class="col-md-2">
+                <label for="{{ form.var_step.id_for_label }}" class="control-label" style="line-height: 34px">{{ form.var_step.label }}:</label>
+            </div>
+            <div class="col-md-2">
+                {{ form.var_step|bootstrap_inline }}
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="dfs">
+        <legend>Nákup a prodej</legend>
+        <p>Ostatní zde uvedené položky se při skončení aukce prodají nebo koupí od výherce. Pokud v aukci něco nabízíte, pravděpodobně chcete něco jiného koupit. Naopak, pokud něco poptáváte, měli byste něco na oplátku nabídnout.</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>množství</th>
+                    <th>předmět</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in items %}
+                <tr class="dfs-row dfs-row-{{ forloop.counter0 }}">
+                    <td>{{ f.coef|bootstrap_inline }}</td>
+                    <td>{{ f.amount|bootstrap_inline}}</td>
+                    <td colspan="2">{{ f.entity|bootstrap_inline }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="hidden dfs-template">
+                    <td>{{ empty_item.coef|bootstrap_inline }}</td>
+                    <td>{{ empty_item.amount|bootstrap_inline }}</td>
+                    <td>{{ empty_item.entity|bootstrap_inline }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <a href="javascript:void(0)" class="dfs-less btn btn-danger col-sm-2 col-sm-offset-2"><i class="glyphicon glyphicon-minus"></i></a>
+                        <a href="javascript:void(0)" class="dfs-more btn btn-success col-sm-2 col-sm-offset-4"><i class="glyphicon glyphicon-plus"></i></a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {{ items.management_form }}
+    </fieldset>
+    <fieldset>
+        <legend>Vytvořit</legend>
+        <p>Jakmile akci jednou vytvoříte, nejde ji změnit ani zrušit. Prostřědky, které nabízíte v aukci, budou uschovány v aukčním domě až do skončení aukce (tj. třeba licence nebudete smět používat).</p>
+        <div class="text-center">
+            <input type="submit" class="btn btn-lg btn-primary" value="Vytvořit aukci!">
+        </div>
+    </fieldset>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            $('.dfs').each(function () {
+                var total = $(this).find('.dfs-row').length;
+                var total_el = $(this).find('input[id$="TOTAL_FORMS"]').val(total);
+                var empty = $(this).find('.dfs-template');
+                var cont = $(this);
+                $(this).find('.dfs-more').click(function() {
+                    if (total >= 1000) return;
+                    var newrow = empty.clone()
+                            .removeClass('dfs-template hidden')
+                            .addClass('dfs-row dfs-row-' + total);
+                    newrow.html(newrow.html().replace(/__prefix__/g, total));
+                    newrow.insertBefore(empty);
+                    total++;
+                    total_el.val(total);
+                });
+                $(this).find('.dfs-less').click(function() {
+                    var total = total_el.val();
+                    if (total <= 0) return;
+                    cont.find('.dfs-row-' + total).remove();
+                    total--;
+                    total_el.val(total);
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -33,11 +33,15 @@
 </nav>
 
 <div class="container">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
     {% block content %}{% endblock %}
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="{% static 'js/jquery.js' %}"></script>
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
+{% block scripts %}{% endblock %}
 
 </body>
 </html>

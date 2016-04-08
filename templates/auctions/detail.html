@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load utils %}
+{% block content %}
+
+<h2>{{ auc }}</h2>
+
+<p>{{ auc.description|default:"" }}</p>
+
+<h3>Aukce</h3>
+
+<dl class="dl-horizontal">
+    {% if current_amount > 0 %}
+        <dt>Aktuální cena:</dt>
+    {% else %}
+        <dt>Aktuální nabídka:</dt>
+    {% endif %}
+    <dd>{{ current_amount|quantity:auc.var_entity }}</dd>
+    <dt>Končí:</dt>
+    <dd>{{ auc.end|gametime }}</dd>
+</dl>
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Nabízí:</h3>
+        <ul>
+        {% for ai in sells %}
+            <li>{{ ai.amount|quantity:ai.entity }}</li>
+        {% empty %}
+            <li>Prodávající nic nenabízí.</li>
+        {% endfor %}
+        </ul>
+    </div>
+
+    <div class="col-md-4">
+        <h3>Požaduje:</h3>
+        <ul>
+        {% for ai in wants %}
+            <li>{{ ai.amount|quantity:ai.entity }}</li>
+        {% empty %}
+            <li>Prodávající nic nepožaduje.</li>
+        {% endfor %}
+        </ul>
+    </div>
+
+    <div class="col-md-4">
+        <h3>Zapojené týmy:</h3>
+            <ul>
+            {% for bid in bids %}
+                <li>{{ bid.team }}</li>
+            {% empty %}
+                <li>Zatím nikdo nepřihazuje. Buďte první!</li>
+            {% endfor %}
+            </ul>
+    </div>
+</div>
+
+
+{% endblock %}
