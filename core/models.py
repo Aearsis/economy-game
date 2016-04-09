@@ -55,8 +55,8 @@ class Game(models.Model):
 
     class Meta:
         permissions = (
-            ("play_game", "Can play the game as a team"),
-            ("control_game", "Can control the game through control panel"),
+            ("play", "Can play the game as a team"),
+            ("control", "Can control the game through control panel"),
         )
 
 

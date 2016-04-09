@@ -1,0 +1,25 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
+    <link href = "{% static 'css/bootstrap.css' %}" rel = "stylesheet">
+    <link href = "{% static 'css/main.css' %}" rel = "stylesheet">
+    <title>{% block title %}Ekonomická hra{% endblock %}</title>
+</head>
+<body>
+
+<div class="container-fluid">
+    {% include "dashboard/dashboard.html" %}
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+<script>
+    $.ekono.dashboard_refreshed = "{{ refreshed }}";
+</script>
+
+</body>
+</html>
