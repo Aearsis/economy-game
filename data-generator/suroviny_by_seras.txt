@@ -1,0 +1,113 @@
+Kly
+Zuby žavlozubého tygra
+Králičí žebra
+
+Tygří kožešina
+Mamutí kožešina
+Králičí kožeina
+
+Látky
+
+Ebenové dřevo
+Cedrové dřevo
+Smrkové dřevo
+
+[Potřeba Pazourková pila & Tesařský průkaz]
+Ebenová prkna
+Cedrová prkna
+Smrková prkna
+
+[Potřeba Pazourková sekera]
+Ebenová polínka
+Cedrová polínka
+Smrková polínka
+
+[Potřeba Pazourkové nůžky]
+Kožená šňůrka
+Provázek
+Spojovadlo [~ izolepa]
+
+Pazourek
+[Potřeba Nástrojářský průkaz]
+Pazourkové kladivo
+Pazourková sekera
+Pazourkové nůžky
+Pazourková pila
+Pazourkové dláto
+
+Žula
+Kamenec
+Mastek
+Křemen
+Slída
+Sádra
+Vosk
+Hliněné tabulky
+
+[Potřeba Pazourkové dláto, Tesařský průkaz & Vosk]
+RandomSort
+
+[Potřeba Pazourkové dláto, Tesařský průkaz & Mastek]
+InsertSort
+
+[Potřeba Pazourkové dláto, Tesařský průkaz & Žula]
+BubbleSort
+
+[Potřeba Pazourkové dláto, Tesařský průkaz & Křemen]
+QuickSort
+
+[Potřeba Pazourkové kladivo, Pazourkové dláto, QuickSort, Křemen, Žula, Kamenec]
+Robot
+
+Nástrojářský průkaz
+Tesařský průkaz
+
+====================
+
+ILEGÁLNÍ SUROVINY
+-----------------
+ticho
+oheň
+komiksy na kamených destičkách
+semínka trávy
+Venuše
+
+JÍDLO
+-----
+čistá voda
+med
+hobičky
+ovoce
+bylinky
+sušené maso (alternativa i jiné maso s nějakou dobou trvanlivosti)
+
+NÁSTROJE
+--------
+pazourek
+proutěné koště
+pila z piraních zubů
+dřevěná palice
+kamená palice
+brousek na odstraňování zubního kamene
+
+DEKORACE A JINÉ
+---------------
+bambusová rohožka
+kulaté kamínky na cvrnkání
+proutěná ošatka
+kokosové misky
+
+KAMENY
+------
+lávové kameny
+kamené chodníkové dlaždice
+kamené cihly
+mlýnský kámen
+leštěné sluneční kamínky
+zkamenělina trilobita
+fosilie amonit
+monolit
+
+DALŠÍ
+------
+hroší kůže
