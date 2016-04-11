@@ -137,7 +137,7 @@ class WhiteAuction(Auction):
     description = models.TextField(max_length=256, null=True)
 
     def __str__(self):
-        return "Aukce od uživatele %s" % self.seller.name
+        return "Aukce od týmu %s" % self.seller
 
     @staticmethod
     def get_all_active():

@@ -22,10 +22,13 @@ def create_auction(request):
         form = CreateAuctionForm(request.POST)
         formset = AIFormSet(request.POST)
         if form.is_valid() and formset.is_valid():
-            data = form.cleaned_data
-            data['auctioneditems'] = formset.cleaned_data
-            auction = WhiteAuction.create(request.user.player.team, data)
-            return redirect(reverse("detail", args=(auction.id,)))
+            try:
+                data = form.cleaned_data
+                data['auctioneditems'] = formset.cleaned_data
+                auction = WhiteAuction.create(request.user.player.team, data)
+                return redirect(reverse("detail", args=(auction.id,)))
+            except InvalidTransaction as e:
+                form.add_error(None, str(e))
     else:
         form = CreateAuctionForm()
         formset = AIFormSet()
@@ -46,7 +49,7 @@ def detail(request, id):
 
     winner, current_amount = auc.effective_offer
 
-    if current_amount is None:
+    if winner is None:
         current_amount = auc.var_min
 
     return render(request, "auctions/detail.html", {

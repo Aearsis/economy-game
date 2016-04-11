@@ -228,9 +228,8 @@ class Balance(models.Model):
     expected_now = models.IntegerField(default=0)
     blocked_now = models.IntegerField(default=0)
 
-
     def _all(self):
-        return self.amount, self.blocked, self.expected + self.expected_now
+        return self.amount, self.blocked_now, self.blocked, self.expected, self.expected_now
 
     def total(self):
         return Quantity(self.entity, self.amount + self.blocked)
@@ -249,8 +248,14 @@ class Balance(models.Model):
             self.expected_now = self.expected = 0
         return self
 
+    def all_zero(self):
+        for a in self._all():
+            if a != 0:
+                return False
+        return True
+
     def is_valid(self):
-        return min(self._all()) >= 0
+        return min(self.amount, self.blocked + self.blocked_now, self.expected + self.expected_now) >= 0
 
     def licence_satisfied(self):
         if self.entity.licence is None:
@@ -341,7 +346,7 @@ class Transaction:
             with Transaction() as t:
                 t.unblock(team, entity, amount)
                 t.add(team, entity, amount)
-        :raises TransactionError in case the transaction is invalid
+        :raises InvalidTransaction in case the transaction is invalid
         """
         teams = set()
 
@@ -360,6 +365,26 @@ class Transaction:
         for op in self.operations:
             op.after_validation()
 
+    def clean(self):
+        """
+        Performs dry commit and checks for errors, then rollbacks.
+        :raises InvalidTransaction with error message if invalid.
+        """
+
+        @transaction.atomic
+        def try_commit():
+            self.commit()
+            raise ValidTransaction  # = abort transaction
+
+        try:
+            try_commit()
+        except ValidTransaction:
+            pass
+
+    def abort(self):
+        self.operations = []
+        self.reservations = []
+
     def __enter__(self):
         return self
 
@@ -376,10 +401,15 @@ class InvalidTransaction(Exception):
         self.error = error
         self.entity = entity
 
-    def __repr__(self):
+    def __str__(self):
         if self.error == self.ERR_NOT_ENOUGH:
-            return "Nemáš dostatek " + self.entity
+            return "Nemáš dostatek " + str(self.entity)
         elif self.error == self.ERR_NO_LICENCE:
-            return "Nemáš licenci pro " + self.entity
+            return "Nemáš licenci pro " + str(self.entity) + "."
         else:
             return "Nějaká podivná chyba"
+
+
+class ValidTransaction(Exception):
+    """ Ugly hack. Look somewhere else, please. """
+    pass

@@ -50,6 +50,7 @@ def dashboard(request):
 def control(request):
     return render(request, 'core/control.html', {
         'game' : Game,
+        'balances' : Balance.objects.order_by('team', 'entity').all()
     })
 
 @permission_required("control_game")

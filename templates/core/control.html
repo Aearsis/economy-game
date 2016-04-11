@@ -1,19 +1,51 @@
 {% extends "base.html" %}
+{% load utils %}
 {% block title %}Ovládací panel{% endblock %}
 {% block content %}
 
 <h2>Ovládací panel</h2>
 
-<div class="col-sm-4">
-    <div class="well">
-        <h3>Hra</h3>
-        {% if game.has_started %}
-            <p>Aktuální herní čas je {{ game.game_time }}</p>
-        {% else %}
-            <p>Hra ještě nezačala.</p>
-            <a href="{% url 'control/start' %}" class="btn btn-danger">Zahájit hru</a>
-        {% endif %}
+<div class="row">
+    <div class="col-sm-4">
+        <div class="well">
+            <h3>Hra</h3>
+            {% if game.has_started %}
+                <p>Aktuální herní čas je {{ game.game_time }}</p>
+            {% else %}
+                <p>Hra ještě nezačala.</p>
+                <a href="{% url 'control/start' %}" class="btn btn-danger">Zahájit hru</a>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<table class="table table-condensed table-striped">
+<thead>
+<tr>
+    <th>Tým</th>
+    <th>Entita</th>
+    <th>A</th>
+    <th>B</th>
+    <th>B now</th>
+    <th>E</th>
+    <th>E now</th>
+</tr>
+</thead>
+<tbody>
+    {% for balance in balances %}
+        {% if not balance.all_zero %}
+            <tr>
+                <th>{% ifchanged balance.team.name %}{{ balance.team.name }}{% endifchanged %}</th>
+                <td>{{ balance.entity }}</td>
+                <td>{{ balance.amount|amount_control|safe }}</td>
+                <td>{{ balance.blocked|amount_control|safe }}</td>
+                <td>{{ balance.blocked_now|amount_control|safe }}</td>
+                <td>{{ balance.expected|amount_control|safe }}</td>
+                <td>{{ balance.expected_now|amount_control|safe }}</td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+</tbody>
+</table>
 
 {% endblock %}

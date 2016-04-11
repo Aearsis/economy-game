@@ -22,3 +22,12 @@ def absolute(val):
 @register.filter
 def quantity(amount, entity):
     return "%d %s %s" % (abs(int(amount)), entity.units, entity.name)
+
+
+@register.filter(is_safe=True)
+def amount_control(amount):
+    if amount == 0:
+        return ""
+    if amount < 0:
+        return '<span class="label label-danger">%s</span>' % amount
+    return '<span class="label label-success">%s</span>' % amount

@@ -4,6 +4,13 @@
 
 <h2>Vytvořit aukci</h2>
 
+{% for err in form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ err }}
+    </div>
+{% endfor %}
+
+
 <form action="{% url "create" %}" method="post">
     {% for hidden in form.hidden_fields %}
         {{ hidden }}
