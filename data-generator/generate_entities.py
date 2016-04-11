@@ -4,14 +4,7 @@ from shutil import copyfile
 copyfile("db_empty_entities.sqlite3", "db_created_entities.sqlite3")
 conn = sqlite3.connect("db_created_entities.sqlite3")
 
-entities = """Kly
-Zuby žavlozubého tygra
-Králičí žebra
-Tygří kožešina
-Mamutí kožešina
-Králičí kožešina""".split("\n")
-
-print(entities)
+from settings import *
 
 # table entity is created by this command:
 """
@@ -24,11 +17,18 @@ CREATE TABLE "core_entity" (
 	"is_strategic" bool NOT NULL);
 """
 
+# TODO: pro jednoduchost má všechno jednotky kusy. Až bude konečná herní
+# verze surovin, tak se může šáhnout do databáze ručně přes webové rozhraní a předělat kusy na
+# něco jiného. To samé s důležitými surovinami.
 def insert_entity(e):
 	return """INSERT INTO "core_entity"("name","units","licence_id","is_licence","is_strategic")
 	VALUES("%s", "ks", NULL, 0, 0);""" % e
 
-for e in entities:
+
+def insert_licensed_pair(licence, licenced_entities):
+	pass
+
+for e in normal:
 	conn.execute(insert_entity(e))
 
 conn.commit()
