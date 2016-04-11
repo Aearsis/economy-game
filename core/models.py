@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import timedelta
 
-
 # Single row to hold game state
 class Game(models.Model):
     started = models.DateTimeField(null=True, blank=True)
