@@ -56,6 +56,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'auctions.middleware.AuctionCommitMiddleware',
+    'core.middleware.TeamMiddleware',
 ]
 
 ROOT_URLCONF = 'ekonomicka.urls'

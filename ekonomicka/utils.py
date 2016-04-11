@@ -21,7 +21,7 @@ def player_required(view_func):
 
 def team_required(view_func):
     """
-    Decorator that ensures logged player has its own team -> request.user.player.team != None.
+    Decorator that ensures logged player has its own team -> request.team != None.
     User must be logged in (if not, redirect to login_url), and have a team (if not, redirect to core.team)
 
     """

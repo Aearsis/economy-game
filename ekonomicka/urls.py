@@ -15,13 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin, auth
-from core import forms
-import core.views
-import django.contrib.auth.views
+
+import auctions.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^recipe/', include('recipes.urls')),
     url(r'^auction/', include('auctions.urls')),
+    url(r'^blackmarket/', auctions.views.black_market, name='black'),
     url(r'^', include('core.urls')),
 ]

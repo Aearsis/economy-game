@@ -1,23 +1,50 @@
 {% extends "base.html" %}
-{% load utils %}
+{% load utils bootstrap %}
 {% block content %}
 
 <h2>{{ auc }}</h2>
-
 <p>{{ auc.description|default:"" }}</p>
 
-<h3>Aukce</h3>
+<div class="row">
+    <div class="col-md-6">
 
-<dl class="dl-horizontal">
-    {% if current_amount > 0 %}
-        <dt>Aktuální cena:</dt>
+        <dl class="dl-horizontal">
+            {% if current_amount > 0 %}
+                <dt>Aktuální cena:</dt>
+            {% else %}
+                <dt>Aktuální nabídka:</dt>
+            {% endif %}
+            <dd>{{ current_amount|quantity:auc.var_entity }}</dd>
+            <dt>Končí:</dt>
+            <dd>{{ auc.end|gametime }}</dd>
+        </dl>
+    </div>
+    {% if is_mine %}
+        <div class="col-md-4">
+            <h3>Do aukce přihazují:</h3>
+                <table>
+                {% for bid in bids %}
+                    <tr>
+                        <td>{{ bid.team }}</td>
+                        <td>{{ bid.amount|abs }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
     {% else %}
-        <dt>Aktuální nabídka:</dt>
+        <div class="col-md-6">
+            <p><strong>Může to být vaše!</strong></p>
+            <p>Nabídněte alespoň {{ minimum|quantity:auc.var_entity }}.</p>
+            <form action="{% url "detail" auc.id %}" method="post" class="form-inline">
+                {% csrf_token %}
+                {{ form|bootstrap_inline }}
+                <div class="form-group">
+                    <input type="submit" value="přihodit" class="btn-success btn btn-block">
+                </div>
+            </form>
+        </div>
     {% endif %}
-    <dd>{{ current_amount|quantity:auc.var_entity }}</dd>
-    <dt>Končí:</dt>
-    <dd>{{ auc.end|gametime }}</dd>
-</dl>
+</div>
 
 <div class="row">
     <div class="col-md-4">
@@ -42,16 +69,6 @@
         </ul>
     </div>
 
-    <div class="col-md-4">
-        <h3>Zapojené týmy:</h3>
-            <ul>
-            {% for bid in bids %}
-                <li>{{ bid.team }}</li>
-            {% empty %}
-                <li>Zatím nikdo nepřihazuje. Buďte první!</li>
-            {% endfor %}
-            </ul>
-    </div>
 </div>
 
 

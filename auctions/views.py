@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.forms import inlineformset_factory
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import Http404
+from django.shortcuts import render, redirect
 
 from auctions.forms import *
 from auctions.models import WhiteAuction
@@ -14,6 +16,14 @@ def white_list(request):
     })
 
 
+@game_running_required
+def black_market(request):
+    return render(request, "auctions/black_market.html", {
+        'auctions': BlackAuction.objects.filter(begin__lte=Game.game_time())
+                  .order_by('-end', '-begin').all()
+    })
+
+
 @team_required
 @game_running_required
 def create_auction(request):
@@ -25,7 +35,8 @@ def create_auction(request):
             try:
                 data = form.cleaned_data
                 data['auctioneditems'] = formset.cleaned_data
-                auction = WhiteAuction.create(request.user.player.team, data)
+                auction = WhiteAuction.create(request.team, data)
+                messages.add_message(request, messages.SUCCESS, "Aukce byla vytvořena.")
                 return redirect(reverse("detail", args=(auction.id,)))
             except InvalidTransaction as e:
                 form.add_error(None, str(e))
@@ -40,21 +51,61 @@ def create_auction(request):
     })
 
 
-def detail(request, id):
-    auc = get_object_or_404(Auction, pk=id)
+def get_active_auction(pk):
+    try:
+        auc = Auction.objects.get(pk=pk)
+        if not Game.time_passed(auc.begin):
+            raise 1
+    except:
+        raise Http404("Tato aukce neexistuje.")
     if auc.whiteauction:
         auc = auc.whiteauction
     else:
         auc = auc.blackauction
+    return auc
 
+
+@team_required
+def place_bid(request, auc: Auction, bf: BidForm):
+    team = request.team
+    try:
+        auc.place_bid(team, bf.cleaned_data['bid'] * bf.cleaned_data['coef'])
+        winner, offer = auc.effective_offer
+        if winner == team:
+            messages.add_message(request, messages.SUCCESS, "Výborně! Nyní vyhráváte tuto aukci.")
+        else:
+            messages.add_message(request, messages.WARNING, "Bohužel, byli jste přehozeni. Zkuste nabídnout více!")
+
+        return redirect("detail", auc.id)
+    except AuctionException as e:
+        bf.add_error('bid', str(e))
+
+
+@game_running_required
+def detail(request, auction):
+    auc = get_active_auction(auction)
     winner, current_amount = auc.effective_offer
 
     if winner is None:
         current_amount = auc.var_min
 
+    minimum = auc.minimum_bid()
+
+    if request.method == 'POST':
+        bf = BidForm(request.POST)
+        if bf.is_valid():
+            r = place_bid(request, auc, bf)
+            if r is not None:
+                return r
+    else:
+        bf = BidForm(initial={"bid": abs(minimum), "coef": 1 if minimum > 0 else -1})
+
     return render(request, "auctions/detail.html", {
         'auc': auc,
+        'is_mine': auc is WhiteAuction and auc.seller == request.team,
         'bids': auc.bid_set.all(),
         'winner': winner,
+        'form': bf,
         'current_amount': current_amount,
+        'minimum': minimum
     })

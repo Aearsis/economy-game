@@ -1,12 +1,7 @@
-from collections import defaultdict
-
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
-from copy import deepcopy
 import timedelta
-# this was really problematic strange line
-#from typing import List
 
 
 # Single row to hold game state
@@ -137,6 +132,11 @@ class Status(models.Model):
         now = Game.game_time()
         data = Status.objects.filter(time__lte=now).order_by('-time')
         return (data, now)
+
+    @staticmethod
+    def add(message, type=INFO, team=None):
+        time = Game.game_time()
+        Status.objects.create(message=message, type=type, team=team, time=time)
 
     class Meta:
         verbose_name_plural = "Statuses"

@@ -40,3 +40,8 @@ class CreateAuctionForm(forms.ModelForm):
         (1, "požaduji nejméně"),
         (-1, "nabízím nejvýše"),
     ), label="Druh aukce")
+
+
+class BidForm(forms.Form):
+    bid = forms.IntegerField(min_value=0, label="Hodnota příhozu")
+    coef = forms.IntegerField(widget=forms.HiddenInput(), required=True, initial=1)

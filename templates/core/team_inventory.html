@@ -10,12 +10,14 @@
     </thead>
     <tbody>
         {% for balance in user.player.team.inventory %}
-        <tr class="{{ balance.entity.css_class }}">
-            <th>{{ balance.entity.name }}</th>
-            <td>{{ balance.amount }}{{ balance.unit }}</td>
-            <td>{{ balance.blocked }}{{ balance.unit }}</td>
-            <th>{{ balance.total }}{{ balance.unit }}</th>
-        </tr>
+        {% if not balance.all_zero %}
+            <tr class="{{ balance.entity.css_class }}">
+                <th>{{ balance.entity.name }}</th>
+                <td>{{ balance.amount }}{{ balance.unit }}</td>
+                <td>{{ balance.blocked }}{{ balance.unit }}</td>
+                <th>{{ balance.total }}{{ balance.unit }}</th>
+            </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>

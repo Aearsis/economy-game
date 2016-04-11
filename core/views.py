@@ -8,12 +8,12 @@ from ekonomicka.utils import *
 @team_required
 def team(request):
     return render(request, "core/team.html", {
-        'team' : request.user.player.team,
+        'team' : request.team,
     })
 
 @player_required
 def create_team(request, next = "/team"):
-    if (request.user.player.team is not None):
+    if request.team is not None:
         return redirect(next)
 
     if (request.method == 'POST'):
@@ -34,15 +34,12 @@ def dashboard(request):
     entities = Entity.objects.order_by("name")
     teams = Team.objects.order_by("name")
     table = [[team.get_balance(entity) for team in teams] for entity in entities]
-    team = None
-    if hasattr(request.user, 'player'):
-        team = request.user.player.team
     return render(request, 'dashboard/in_base.html', {
         'statuses' : data[0],
         'refreshed' : data[1],
         'teams' : teams,
         'table' : table,
-        'team' : team,
+        'team' : request.team,
     })
 
 

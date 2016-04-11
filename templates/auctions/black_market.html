@@ -3,10 +3,6 @@
 {% block content %}
 
 <div class="row">
-    <div class="col-sm-12">
-      <a href="{% url "create" %}" class="btn btn-block btn-success">
-        <i class="glyphicon glyphicon-plus"></i> Vytvořit aukci</a>
-    </div>
     {% for auc in auctions %}
         {% ifchanged auc.is_active %}
     </div>

@@ -20,6 +20,7 @@
                 {% if perms.core.play_game %}
                 <li><a href="{% url 'team' %}">Informace o týmu</a></li>
                 <li><a href="{% url 'auction/list' %}">Aukce</a></li>
+                <li><a href="{% url 'black' %}">Černý trh</a></li>
                 {% endif %}
                 {% if perms.core.control_game  %}
                 <li><a href="{% url 'control' %}">Ovládací panel</a></li>

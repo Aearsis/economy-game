@@ -49,6 +49,13 @@ class Auction(models.Model):
     def __str__(self):
         return "Prostě aukce. To je bug."
 
+    def minimum_bid(self):
+        winner, amount = self.effective_offer
+        if winner is None:
+            return self.var_min
+        else:
+            return amount + self.var_step
+
     @transaction.atomic
     def place_bid(self, team, amount):
         """
@@ -58,17 +65,23 @@ class Auction(models.Model):
         if not self.is_active():
             raise AuctionException("Aukce už skončila.")
 
-        eff_bidder, eff_amount = self.effective_offer
-        if eff_amount is not None:
-            min_amount = eff_amount + self.var_step
-            if min_amount >= amount:
-                raise AuctionException("Musíš nabídnout alespoň %i." % min_amount)
+        min_amount = self.minimum_bid()
+        if min_amount > amount:
+            raise AuctionException("Musíte nabídnout alespoň %i." % min_amount)
+
+        team_bids = self.bid_set.filter(team=team)
+        if len(team_bids) > 0:
+            team_bid = team_bids.first()
+            if team_bid.amount >= amount:
+                raise AuctionException("Svůj příhoz můžete pouze zvýšit. Už jste nabídli %d." % team_bid.amount)
+        else:
+            team_bid = Bid(auction=self, team=team)
 
         highest_bid = self.highest_bid
 
-        team_bid = self.bid_set.get_or_create(team=team)
         team_bid.amount = amount
         team_bid.placed = Game.game_time()
+        team_bid.save()
 
         with Transaction() as t:
             if highest_bid is not None:
@@ -78,8 +91,6 @@ class Auction(models.Model):
                 highest_bid = team_bid
 
             highest_bid.block(t)
-
-        team_bid.save()
 
     def _commit_seller(self, t: Transaction, var_amount):
         """
@@ -94,7 +105,7 @@ class Auction(models.Model):
         Remember to unblock everything bidded.
         """
         t.remove(self.buyer, self.var_entity, var_amount)
-        for item in self.auctioneditem_set:
+        for item in self.auctioneditem_set.all():
             t.add(self.buyer, item.entity, item.amount)
 
     @transaction.atomic
@@ -169,7 +180,7 @@ class WhiteAuction(Auction):
 
         t.add(self.seller, self.var_entity, var_amount)
 
-        for ai in self.auctioneditem_set:
+        for ai in self.auctioneditem_set.all():
             t.remove(self.seller, ai.entity, ai.amount)
 
     @staticmethod
@@ -202,6 +213,14 @@ class WhiteAuction(Auction):
 
         return auc
 
+    def commit(self):
+        super().commit()
+        if self.buyer is not None:
+            Status.add("%s vyhrál aukci od týmu %s!" % (self.buyer, self.seller))
+        else:
+            Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
+
+
     class Meta:
         verbose_name_plural = "Auctions"
 
@@ -212,6 +231,10 @@ class BlackAuction(Auction):
 
     def __str__(self):
         return "Černý trh: %s" % self.status_text
+
+    def commit(self):
+        super().commit()
+        Status.add(self.status_text % self)
 
     class Meta:
         verbose_name_plural = "Black market offers"
@@ -261,7 +284,7 @@ class Bid(models.Model):
             t.block(self.team, auc.var_entity, self.amount * coef)
         else:
             t.expect(self.team, auc.var_entity, -self.amount * coef)
-        for item in auc.auctioneditem_set:
+        for item in auc.auctioneditem_set.all():
             item.block_expect(t, self.team, coef)
 
     def unblock(self, t: Transaction):
@@ -269,3 +292,6 @@ class Bid(models.Model):
 
     class Meta:
         unique_together = ("auction", "team")
+
+    def __repr__(self):
+        return "<Bid: %r %r %r>" % (self.auction, self.team, self.amount)
