@@ -1,7 +1,6 @@
-Potřebné moduly:
+Potřebné moduly si nainstaluj tímhle příkazem:
 
-django-timedelta
-django-bootstrap-form
+pip install -r install_this_packages.txt
 
 Vyrobte si vlastního admin uživatele pomocí:
 	./manage.py createsuperuser
