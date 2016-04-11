@@ -10,26 +10,6 @@
 
 <hr>
 <h3>Inventář</h3>
-
-<table class="table table-balance">
-    <thead>
-    <tr>
-        <th>Předmět</th>
-        <th>Disponibilní množství</th>
-        <th>Blokované množství</th>
-        <th>Celkové množství</th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for balance in inventory %}
-        <tr class="{{ balance.entity.css_class }}">
-            <th>{{ balance.entity.name }}</th>
-            <td>{{ balance.amount }}{{ balance.unit }}</td>
-            <td>{{ balance.blocked }}{{ balance.unit }}</td>
-            <th>{{ balance.total }}{{ balance.unit }}</th>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% include "core/team_inventory.html" %}
 
 {% endblock %}

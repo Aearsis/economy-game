@@ -1,11 +1,28 @@
 {% extends "base.html" %}
-
+{% load utils %}
 {% block content %}
 
 <div class="row">
+    <div class="col-sm-4">
+        <div class="well">
+            <a href="{% url "create" %}" class="btn btn-block btn-success">
+                <i class="glyphicon glyphicon-plus"></i> Vytvořit aukci</a>
+        </div>
+    </div>
     {% for auc in auctions %}
-        <div class="col-sm-4 well">
-            {{ auc }}
+        <div class="col-sm-4">
+            <div class="well">
+                {% if not auc.is_active %}
+                    <i>Aukce již skončila.</i>
+                {% else %}
+                    <i>Aukce končí {{ auc.end|gametime }}</i>
+                {% endif %}
+                <p>{{ auc.description }}</p>
+                <p>(TODO: obrázkové znázornění)</p>
+                <div class="text-right">
+                    <a href="{% url "detail" auc.id %}" class="btn btn-primary">detail</a>
+                </div>
+            </div>
         </div>
         {% empty %}
         <div class="col-sm-12">
@@ -14,10 +31,6 @@
             </div>
         </div>
     {% endfor %}
-    <div class="col-sm-4 well">
-        <a href="{% url "create" %}" class="btn btn-block btn-success">
-            <i class="glyphicon glyphicon-plus"></i> Vytvořit aukci</a>
-    </div>
 </div>
 
 {% endblock %}

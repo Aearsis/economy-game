@@ -6,9 +6,11 @@ from auctions.models import WhiteAuction
 from ekonomicka.utils import *
 
 
+@game_running_required
 def white_list(request):
     return render(request, "auctions/white_list.html", {
-        'auctions': WhiteAuction.get_all_active()
+        'auctions': WhiteAuction.objects.filter(begin__lte=Game.game_time())
+                  .order_by('-end').all()
     })
 
 
@@ -23,7 +25,7 @@ def create_auction(request):
             data = form.cleaned_data
             data['auctioneditems'] = formset.cleaned_data
             auction = WhiteAuction.create(request.user.player.team, data)
-            return redirect(reverse("detail", args={"id": auction.id}))
+            return redirect(reverse("detail", args=(auction.id,)))
     else:
         form = CreateAuctionForm()
         formset = AIFormSet()
@@ -42,7 +44,7 @@ def detail(request, id):
     else:
         auc = auc.blackauction
 
-    winner, current_amount = auc.effective_offer()
+    winner, current_amount = auc.effective_offer
 
     if current_amount is None:
         current_amount = auc.var_min
@@ -51,7 +53,5 @@ def detail(request, id):
         'auc': auc,
         'bids': auc.bid_set.all(),
         'winner': winner,
-        'sells': auc.auctioneditem_set.filter(amount__gt=0),
-        'wants': auc.auctioneditem_set.filter(amount__lt=0),
         'current_amount': current_amount,
     })

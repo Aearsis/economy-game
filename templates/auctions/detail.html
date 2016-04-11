@@ -23,7 +23,7 @@
     <div class="col-md-4">
         <h3>Nabízí:</h3>
         <ul>
-        {% for ai in sells %}
+        {% for ai in auc.sells %}
             <li>{{ ai.amount|quantity:ai.entity }}</li>
         {% empty %}
             <li>Prodávající nic nenabízí.</li>
@@ -34,7 +34,7 @@
     <div class="col-md-4">
         <h3>Požaduje:</h3>
         <ul>
-        {% for ai in wants %}
+        {% for ai in auc.wants %}
             <li>{{ ai.amount|quantity:ai.entity }}</li>
         {% empty %}
             <li>Prodávající nic nepožaduje.</li>

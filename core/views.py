@@ -9,7 +9,6 @@ from ekonomicka.utils import *
 def team(request):
     return render(request, "core/team.html", {
         'team' : request.user.player.team,
-        'inventory' : Balance.objects.filter(team = request.user.player.team).order_by('entity__name'),
     })
 
 @player_required
@@ -35,11 +34,15 @@ def dashboard(request):
     entities = Entity.objects.order_by("name")
     teams = Team.objects.order_by("name")
     table = [[team.get_balance(entity) for team in teams] for entity in entities]
-    return render(request, 'dashboard/index.html', {
+    team = None
+    if hasattr(request.user, 'player'):
+        team = request.user.player.team
+    return render(request, 'dashboard/in_base.html', {
         'statuses' : data[0],
         'refreshed' : data[1],
         'teams' : teams,
         'table' : table,
+        'team' : team,
     })
 
 
