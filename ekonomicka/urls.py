@@ -14,13 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-from django.contrib import admin, auth
+from django.contrib import admin
 
 import auctions.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^recipe/', include('recipes.urls')),
+    url(r'^tokens/', include('tokens.urls', namespace="token")),
     url(r'^auction/', include('auctions.urls')),
     url(r'^blackmarket/', auctions.views.black_market, name='black'),
     url(r'^', include('core.urls')),

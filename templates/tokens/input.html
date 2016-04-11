@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{%  load bootstrap %}
+{% block content %}
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <form action="{% url "token:input" %}" method="post">
+            {% csrf_token %}
+            {{ form|bootstrap }}
+        </form>
+    </div>
+</div>
+{% endblock %}

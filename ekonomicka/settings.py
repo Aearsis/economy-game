@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'auctions.apps.AuctionsConfig',
     'recipes.apps.RecipesConfig',
+    'tokens.apps.TokensConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
