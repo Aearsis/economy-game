@@ -10,16 +10,10 @@ class TransactionTests(TestCase):
 
         self.safe = Entity.objects.create(name="Safe entity")
         self.licence = Entity.objects.create(name="Licence")
-        self.unsafe = Entity.objects.create(name="Unsafe entity", licence=self.licence)
-
-    def _zero_state(self):
-        for team in (self.seller, self.buyer):
-            team.get_balance(self.safe).set_zero().save()
-            team.get_balance(self.unsafe).set_zero().save()
-            team.get_balance(self.licence).set_zero().save()
+        self.unsafe = Entity.objects.create(name="Unsafe entity")
+        self.unsafe.licences.add(self.licence)
 
     def test_transaction_valid(self):
-        self._zero_state()
         with Transaction() as t:
             t.add(self.seller, self.safe, 10)
 
@@ -31,7 +25,6 @@ class TransactionTests(TestCase):
                 t.remove(self.seller, self.safe, 10)
 
     def test_licence(self):
-        self._zero_state()
         self.seller.get_balance(self.unsafe).set_amount(0).save()
         self.seller.get_balance(self.licence).set_amount(0).save()
 
@@ -48,7 +41,6 @@ class TransactionTests(TestCase):
                 t.remove(self.seller, self.licence, 1)
 
     def test_double(self):
-        self._zero_state()
         self.seller.get_balance(self.safe).set_amount(0).save()
 
         with Transaction() as t:
@@ -58,7 +50,6 @@ class TransactionTests(TestCase):
         self.assertEqual(20, self.seller.get_balance(self.safe).amount)
 
     def test_exchange(self):
-        self._zero_state()
         self.seller.get_balance(self.licence).set_amount(1).save()
         self.seller.get_balance(self.unsafe).set_amount(1).save()
 
@@ -82,7 +73,6 @@ class TransactionTests(TestCase):
         self.assertEqual(1, self.buyer.get_balance(self.unsafe).amount)
 
     def test_reservation(self):
-        self._zero_state()
         self.seller.get_balance(self.safe).set_amount(10).save()
 
         with Transaction() as t:
@@ -95,7 +85,6 @@ class TransactionTests(TestCase):
                 t.needs(self.seller, self.safe, 5)
 
     def test_phased_reservation(self):
-        self._zero_state()
         self.seller.get_balance(self.safe).set_amount(5).save()
 
         with self.assertRaises(InvalidTransaction):
@@ -115,7 +104,6 @@ class TransactionTests(TestCase):
                 raise MyException
 
     def test_return(self):
-        self._zero_state()
         self.seller.get_balance(self.licence).set_amount(1).save()
         self.seller.get_balance(self.unsafe).set_amount(10).save()
 
@@ -128,14 +116,11 @@ class TransactionTests(TestCase):
                 t.remove(self.seller, self.licence, 1)
 
     def test_expect_invalid(self):
-        self._zero_state()
-
         with self.assertRaises(InvalidTransaction):
             with Transaction() as t:
                 t.expect(self.buyer, self.unsafe, 10)
 
     def test_expect_invalid_advanced(self):
-        self._zero_state()
         with Transaction() as t:
             t.add(self.buyer, self.licence, 1)
 
@@ -147,8 +132,6 @@ class TransactionTests(TestCase):
                 t.block(self.buyer, self.licence, 1)
 
     def test_expect_valid(self):
-        self._zero_state()
-
         with Transaction() as t:
             t.expect(self.buyer, self.unsafe, 10)
             t.expect(self.buyer, self.licence, 1)

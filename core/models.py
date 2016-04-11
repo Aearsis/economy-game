@@ -73,16 +73,19 @@ class Team(models.Model):
 
     def assert_valid(self):
         """ If the current balance state is not valid, throws an exception. """
+        not_enough = set()
+        missing = set()
         for balance in self.balance_set.all():
             if not balance.is_valid():
-                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
-            if not balance.licence_satisfied():
-                raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
+                not_enough.add(balance.entity)
+            missing.update(balance.licences_missing())
+        if not_enough or missing:
+            raise InvalidTransaction(not_enough, missing)
 
     def is_valid(self):
         """ Returns True if team's balance is in valid state """
         for balance in self.balance_set.all():
-            if not balance.is_valid() or not balance.licence_satisfied():
+            if not balance.is_valid() or not balance.licences_satisfied():
                 return False
         return True
 
@@ -145,25 +148,17 @@ class Status(models.Model):
 class Entity(models.Model):
     name = models.CharField(max_length=128)
     units = models.CharField(max_length=128, blank=True)
-    licence = models.ForeignKey("self", null=True, blank=True)
+    licences = models.ManyToManyField("self", symmetrical=False, related_name="licenced_entities")
 
-    is_licence = models.BooleanField(default=False)
     is_strategic = models.BooleanField(default=False)
 
-    @staticmethod
-    def map_licences(entities):
-        """
-        Accepts a list of entities and returns a dictionary { entity E, list(entity depending on E }
-        ( inverses licence mapping)
-        """
-        map = {}
-        for entity in entities:
-            if entity.licence:
-                if entity.licence not in map:
-                    map[entity.licence] = []
-                map[entity.licence].append(entity)
+    @property
+    def is_licence(self):
+        return self.licenced_entities.count() > 0
 
-        return map
+    @property
+    def is_licenced(self):
+        return self.licences.count() > 0
 
     def css_class(self):
         classes = []
@@ -171,7 +166,7 @@ class Entity(models.Model):
             classes.append("ent-strategic")
         if self.is_licence:
             classes.append("ent-licence")
-        if self.licence is not None:
+        if self.is_licenced:
             classes.append("ent-needs-licence")
         return " ".join(classes)
 
@@ -181,9 +176,9 @@ class Entity(models.Model):
             classes.append("(S) ")
         if self.is_licence:
             classes.append("(L) ")
-        if self.licence is not None:
+        if self.is_licenced:
             classes.append("(D) ")
-        return "".join(classes) + self.name
+        return self.name + "".join(classes)
 
     class Meta:
         verbose_name_plural = "Entities"
@@ -216,8 +211,8 @@ class Balance(models.Model):
 
     """
     These are amounts that can be added in future by winning auction.
-    expected > 0 means we need to keep a licence.
-    expected_now is used to check situation, when team gets licenced entity and the licence in the same time.
+    expected > 0 means we need to keep all licences.
+    expected_now is used to check situation, when team gets licenced entity and licences in the same time.
     blocked_now is used in situation when team sells both at a time.
 
     Please note that though we call if () then block(x) else expect(-x), we can not merge them,
@@ -258,16 +253,20 @@ class Balance(models.Model):
     def is_valid(self):
         return min(self.amount, self.blocked + self.blocked_now, self.expected + self.expected_now) >= 0
 
-    def licence_satisfied(self):
-        if self.entity.licence is None:
-            return True
+    def licenses_satisfied(self):
+        return not self.licences_missing()
+
+    def licences_missing(self):
         # ignoring blocked_now - do not require licence when selling everything
         if self.amount == 0 and self.blocked == 0 and self.expected + self.expected_now == 0:
-            return True
+            return []
 
-        lbalance = self.team.get_balance(self.entity.licence)
-        # satisfy licence when buying it in the same transaction
-        return lbalance.amount > 0 or lbalance.expected_now > 0
+        # get all licences that have amount and expected_now == 0, or those without balance with current team
+        for l in self.entity.licences.all():
+            bal = self.team.get_balance(l)
+            if bal.amount == 0 and bal.expected_now == 0:
+                yield l
+
 
     class Meta:
         unique_together = ("team", "entity")
@@ -355,10 +354,13 @@ class Transaction:
             op.commit()
             teams.add(op.team)
 
+        not_enough = set()
         for (team, entity, amount) in self.reservations:
             bal = team.get_balance(entity)
             if (bal.amount + bal.expected_now) < amount:
-                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, entity)
+                not_enough.add(entity)
+        if not_enough:
+            raise InvalidTransaction(not_enough)
 
         for team in teams:
             team.assert_valid()
@@ -395,20 +397,26 @@ class Transaction:
 
 
 class InvalidTransaction(Exception):
-    ERR_NOT_ENOUGH = 1
-    ERR_NO_LICENCE = 2
 
-    def __init__(self, error, entity):
-        self.error = error
-        self.entity = entity
+    def __init__(self, not_enough=[], missing_licences=[]):
+        self.not_enough = list(not_enough)
+        self.missing_licences = list(missing_licences)
 
     def __str__(self):
-        if self.error == self.ERR_NOT_ENOUGH:
-            return "Nemáš dostatek " + str(self.entity)
-        elif self.error == self.ERR_NO_LICENCE:
-            return "Nemáš licenci pro " + str(self.entity) + "."
-        else:
-            return "Nějaká podivná chyba"
+        err = ""
+        if len(self.not_enough) == 1:
+            err += "Nemáš dostatek %s." % ("".join(self.not_enough))
+        elif len(self.not_enough) > 1:
+            err += "Nemáš dostatek: %s." % (", ".join(self.not_enough))
+        if len(self.missing_licences) == 1:
+            return "Nemáš licenci %s" % (", ".join(self.missing_licences))
+        elif len(self.missing_licences) > 1:
+            return "Nemáš licence: %s" % (", ".join(self.missing_licences))
+
+        if err == "":
+            err = "Nějaká podivná chyba."
+
+        return err
 
 
 class ValidTransaction(Exception):
