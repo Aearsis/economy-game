@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from copy import deepcopy
 import timedelta
-from typing import List
+# this was really problematic strange line
+#from typing import List
 
 
 # Single row to hold game state
