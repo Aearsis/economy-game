@@ -78,25 +78,21 @@ class Team(models.Model):
     def assert_valid(self):
         """ If the current balance state is not valid, throws an exception. """
         for balance in self.balance_set.all():
-            if balance.amount < 0 or balance.blocked < 0:
+            if not balance.is_valid():
                 raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, balance.entity)
-            licence = balance.entity.licence
-            # we need to check only for non-blocked amount of licences
-            need_licence = licence is not None and balance.total().amount > 0
-            if need_licence and not self.has_entity(licence):
+            if not balance.licence_satisfied():
                 raise InvalidTransaction(InvalidTransaction.ERR_NO_LICENCE, balance.entity)
 
     def is_valid(self):
-        """ Returns True if team's balance is in valid state
+        """ Returns True if team's balance is in valid state """
+        for balance in self.balance_set.all():
+            if not balance.is_valid() or not balance.licence_satisfied():
+                return False
+        return True
 
-        Catching exceptions is overkill, but this way we avoid duplicating code.
-        """
-        try:
-            self.assert_valid()
-        except InvalidTransaction:
-            return False
-        else:
-            return True
+    @property
+    def inventory(self):
+        return self.balance_set.order_by('entity__name')
 
     def __str__(self):
         return self.name
@@ -174,7 +170,7 @@ class Entity(models.Model):
             classes.append("ent-strategic")
         if self.is_licence:
             classes.append("ent-licence")
-        if self.licence != None:
+        if self.licence is not None:
             classes.append("ent-needs-licence")
         return " ".join(classes)
 
@@ -184,7 +180,7 @@ class Entity(models.Model):
             classes.append("(S) ")
         if self.is_licence:
             classes.append("(L) ")
-        if self.licence != None:
+        if self.licence is not None:
             classes.append("(D) ")
         return "".join(classes) + self.name
 
@@ -214,19 +210,58 @@ class Quantity:
 class Balance(models.Model):
     team = models.ForeignKey(Team)
     entity = models.ForeignKey(Entity)
-    amount = models.IntegerField(default=0)
-    blocked = models.IntegerField(default=0)
+    amount = models.IntegerField(default=0)  # actual amount that can be sold
+    blocked = models.IntegerField(default=0)  # amount expected to be sold
+
+    """
+    These are amounts that can be added in future by winning auction.
+    expected > 0 means we need to keep a licence.
+    expected_now is used to check situation, when team gets licenced entity and the licence in the same time.
+    blocked_now is used in situation when team sells both at a time.
+
+    Please note that though we call if () then block(x) else expect(-x), we can not merge them,
+    because negative values makes sense in both calls and must be separated. Expected values are invisible in UI.
+
+    Note that *_now should be 0 unless in the middle of transaction.
+    """
+    expected = models.IntegerField(default=0)
+    expected_now = models.IntegerField(default=0)
+    blocked_now = models.IntegerField(default=0)
+
+
+    def _all(self):
+        return self.amount, self.blocked, self.expected + self.expected_now
 
     def total(self):
         return Quantity(self.entity, self.amount + self.blocked)
 
     def __str__(self):
         return "%s: %s (%d + %d blocked) %s" % (
-        self.team.name, self.entity.name, self.amount, self.blocked, self.entity.units)
+            self.team.name, self.entity.name, self.amount, self.blocked, self.entity.units)
 
     def set_amount(self, amount: int):
         self.amount = amount
         return self
+
+    def set_zero(self):
+        self.amount = \
+            self.blocked = self.blocked_now = \
+            self.expected_now = self.expected = 0
+        return self
+
+    def is_valid(self):
+        return min(self._all()) >= 0
+
+    def licence_satisfied(self):
+        if self.entity.licence is None:
+            return True
+        # ignoring blocked_now - do not require licence when selling everything
+        if self.amount == 0 and self.blocked == 0 and self.expected + self.expected_now == 0:
+            return True
+
+        lbalance = self.team.get_balance(self.entity.licence)
+        # satisfy licence when buying it in the same transaction
+        return lbalance.amount > 0 or lbalance.expected_now > 0
 
     class Meta:
         unique_together = ("team", "entity")
@@ -234,23 +269,37 @@ class Balance(models.Model):
 
 class Transaction:
     class Operation:
-        def __init__(self, team: Team, entity: Entity, amount=0, block=0):
+        def __init__(self, team: Team, entity: Entity, amount=0, block=0, expect=0):
             self.team = team
             self.entity = entity
             self.amount = amount
             self.block = block
+            self.expect = expect
 
         def commit(self):
             balance = self.team.get_balance(self.entity)
             balance.amount += self.amount
-            balance.blocked += self.block
+            if self.block > 0:
+                balance.blocked_now += self.block
+            else:
+                balance.blocked += self.block
+            if self.expect > 0:
+                balance.expected_now += self.expect
+            else:
+                balance.expected += self.expect
+            balance.save()
+            return balance
+
+        def after_validation(self):
+            balance = self.team.get_balance(self.entity)
+            balance.expected, balance.expected_now = balance.expected_now + balance.expected, 0
+            balance.blocked, balance.blocked_now = balance.blocked_now + balance.blocked, 0
             balance.save()
 
         def __repr__(self):
-            return "%r.%r += (%i, %i)" % (self.team, self.entity, self.amount, self.block)
+            return "%r.%r += (%i, %i, %i)" % (self.team, self.entity, self.amount, self.block, self.expect)
 
     def __init__(self):
-        self.phases = []
         self.operations = []
         self.reservations = []
 
@@ -268,6 +317,13 @@ class Transaction:
     def remove(self, team: Team, entity: Entity, amount: int):
         return self.add(team, entity, -amount)
 
+    def expect(self, team: Team, entity: Entity, amount: int):
+        self.operations.append(Transaction.Operation(team, entity, expect=amount))
+        return self
+
+    def unexpect(self, team: Team, entity: Entity, amount: int):
+        return self.expect(team, entity, -amount)
+
     def move(self, team_from: Team, team_to: Team, entity: Entity, amount: int):
         self.remove(team_from, entity, amount)
         self.add(team_to, entity, amount)
@@ -277,11 +333,6 @@ class Transaction:
         self.reservations.append((team, entity, amount))
         return self
 
-    def assertValidState(self):
-        self.phases.append((self.operations, self.reservations))
-        self.operations = []
-        self.reservations = []
-
     @transaction.atomic
     def commit(self):
         """
@@ -290,25 +341,24 @@ class Transaction:
             with Transaction() as t:
                 t.unblock(team, entity, amount)
                 t.add(team, entity, amount)
-        :raises TransactionError in case the transaction is invalidreservations
+        :raises TransactionError in case the transaction is invalid
         """
-        self.assertValidState()
+        teams = set()
 
-        for (operations, reservations) in self.phases:
-            teams = set()
+        for op in self.operations:
+            op.commit()
+            teams.add(op.team)
 
-            for op in operations:
-                op.commit()
-                teams.add(op.team)
+        for (team, entity, amount) in self.reservations:
+            bal = team.get_balance(entity)
+            if (bal.amount + bal.expected_now) < amount:
+                raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, entity)
 
-            for (team, entity, amount) in reservations:
-                if team.get_balance(entity).total().amount < amount:
-                    raise InvalidTransaction(InvalidTransaction.ERR_NOT_ENOUGH, entity)
+        for team in teams:
+            team.assert_valid()
 
-            for team in teams:
-                team.assert_valid()
-
-        self.phases = []
+        for op in self.operations:
+            op.after_validation()
 
     def __enter__(self):
         return self
