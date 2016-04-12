@@ -19,9 +19,10 @@ def get_or_create_ent(name):
 def generate_entities():
 	Entity.objects.all().delete()
 	entities = {}
-	for n in normal:
+	for n in minable:
 		get_or_create_ent(n)
 
+	return
 	for k,v in licenced.items():
 		lic = [get_or_create_ent(l) for l in k]
 		for n in v:

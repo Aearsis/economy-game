@@ -147,6 +147,10 @@ class Status(models.Model):
 class Entity(models.Model):
     name = models.CharField(max_length=128)
     units = models.CharField(max_length=128, blank=True)
+
+# our secret description
+   # reachability = models.CharField(max_length=128, blank=True)
+
     licences = models.ManyToManyField("self", symmetrical=False, related_name="licenced_entities", blank=True)
 
     is_strategic = models.BooleanField(default=False)

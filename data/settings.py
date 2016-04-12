@@ -1,150 +1,147 @@
+from collections import namedtuple
+Recipe = namedtuple("Recipe", "consumes needs creates")
 
-########### Normální suroviny, na které není potřeba žádná licence. Jsou
-########### mezi nimi jak ty, které se dají dostat sběrem, tak ty, s kterými
-########### se obchoduje.
-normal = """
-Kly
+minable = """Kly
 Zuby žavlozubého tygra
 Králičí žebra
-
 Tygří kožešina
 Mamutí kožešina
-Králičí kožeina
-
-Látky
-
-Ebenové dřevo
-Cedrové dřevo
-Smrkové dřevo
+Králičí kožešina
+Eben
+Cedr
+Smrk
+Čistá voda
+Med
+Medvědí česnek
+Dobrej pocit
+Písek
+Kamení
+Křemen
 """.split("\n")
 
-
-#ILEGÁLNÍ SUROVINY
-#-----------------
-normal = """
-ticho
-oheň
-komiksy na kamených destičkách
-semínka trávy
+blackmarkatable = """Ticho
+Oheň
+Komiksy na kamených destičkách
+Semínka trávy
 Venuše
+Burák
 """.split("\n")
 
-#JÍDLO
-#-----
-normal += """
-čistá voda
-med
-houbička
-ovoce
-bylinky
+makable_markatable = """
 sušené maso 
-""".split("\n")
-
-#DEKORACE A JINÉ
-#---------------
-normal += """
+Vosk
+Mastek
+Žula
+Kamenec
 bambusová rohožka
 kulaté kamínky na cvrnkání
 proutěná ošatka
 kokosové misky
-""".split("\n")
-
-#KAMENY
-#------
-normal += """
 lávové kameny
 kamené chodníkové dlaždice
 kamené cihly
 mlýnský kámen
+Mýdlo
+Cedrové prkno
+Ebenové prkno
+Smrkové prkno
+Cedrové polínko
+Ebenové polínko
+Smrkové polínko
 leštěné sluneční kamínky
+Lepící kámen
 zkamenělina trilobita
-fosilie amonit
 monolit
+Robot
+RandomSort
+BubbleSort
+InsertSort
+QuickSort
+Kožená šňůrka
+Provázek
 """.split("\n")
 
-#DALŠÍ
-#------
-normal += [
-	"hroší kůže",
-	"dobrej pocit",
-	]
+
+all_goods = minable + blackmarkatable + makable_markatable
 
 
-
-
-########################################################
-# licencované zboží
-
-licenced = { # licence : [ list of licensed entities ]
-	("Pazourková pila","Tesařský průkaz"): [
-		"Ebenová prkna",
-		"Cedrová prkna",
-		"Smrková prkna",
-		],
-
-	("Pazourková sekerka",): [
-		"Ebenová polínka",
-		"Cedrová polínka",
-		"Smrková polínka"
-		],
-
-	("Pazourkové nůžky",): [
-		"Kožená šňůrka",
-		"Provázek",
-		"Lepící kámen", # ~ izolepa, ale pšt!
-		"Pazourek",
-		],
-
-	("Nástrojářský průkaz",): """Pazourkové kladivo
-Pazourková sekera
+tools = """Pazourková sekerka
 Pazourkové nůžky
-Pazourková pila
 Pazourkové dláto
-Žula
-Kamenec
-Mastek
-Křemen
-Slída
-Sádra
-Vosk
-pazourek
-proutěné koště
-pila z piraních zubů
-dřevěná palice
-kamená palice
-brousek na odstraňování zubního kamene
-Hliněné tabulky""".split("\n"),
+Pazourkové kladivo
+Pazourková pila
+Tesařský průkaz
+Nástrojářský průkaz""".split("\n")
 
+recipes = [
+	Recipe(
+		needs=("Pazourková pila","Tesařský průkaz"),
+		consumes=(tree,),
+		creates=(tree+"ové prkno",)
+	) for tree in ["Cedr","Smrk","Eben"]
+	] + [
 
+	Recipe(
+		needs=("Pazourková sekerka",),
+		consumes=(tree,),
+		creates=(tree+"ové polínko",)
+	) for tree in ["Cedr","Smrk","Eben"]
+	] + [
+	Recipe(
+		needs=(),
+		consumes=("Med","Čistá voda","Kamení"),
+		creates=("Lepící kámen",),
+		)
+	] + [
+	Recipe(
+		needs=("Pazourkové nůžky",),
+		consumes=(kuze,),
+		creates=(provazek,)
+	) for kuze in ["Tygří kožešina","Mamutí kožešina","Králičí kožešina"] \
+	for provazek in ["Kožená šňůrka","Provázek"]
+	] + [
 
-}
+	Recipe(
+		needs=("Pazourkové dláto","Tesařský průkaz"),
+		consumes=("Vosk",),
+		creates=("RandomSort",)
+		),
 
+	Recipe(
+		needs=("Pazourkové dláto", "Tesařský průkaz"),
+		consumes=("Mastek",),
+		creates=("InsertSort",)
+	),
 
+	Recipe(
+		needs=("Pazourkové dláto", "Tesařský průkaz"),
+		consumes=("Mýdlo","Čistá voda"),
+		creates=("BubbleSort",)
+	),
 
-recipes = {
-	("Pazourkové dláto","Tesařský průkaz","Vosk"): [
-		"RandomSort",
-		],
+	Recipe(
+		needs=("Pazourkové dláto","Tesařský průkaz"),
+		consumes=("Křemen",),
+		creates=("QuickSort",)
+		),
 
-	("Pazourkové dláto", "Tesařský průkaz", "Mastek"): [
-		"InsertSort",
-		],
+	Recipe(
+		needs=("Pazourkové kladivo", "Pazourkové dláto"),
+		consumes=("QuickSort", "Křemen", "Žula", "Kamenec"),
+		creates=("Robot",)
+		),
+]
 
-	("Pazourkové dláto", "Tesařský průkaz","Žula"): [
-		"BubbleSort",
-		],
+# check recipes: všechny ingredience a výrobky musí být zmíněné dříve mezi
+# minable, markatable etc., aby se nestalo, že nějaká věc je nedostupná!!!
 
-	("Pazourkové dláto","Tesařský průkaz","Křemen"): [
-		"QuickSort",
-		],
+# TODO: asi by bylo fajn stanovit u receptů taky množství, ale do toho se mi
+# moc nechce. Nechal bych všechno jednou.
 
-	("Pazourkové kladivo", "Pazourkové dláto", "QuickSort", "Křemen", "Žula", "Kamenec"):[
-		"Robot",
-		]
-
-}
-
-normal = [ l.strip() for l in normal if l and not l.isspace() ]
-
-if __name__ == "__main__":
-	print("máme ve hře",len(normal),"nelicencovaných surovin:","\n".join(normal))
+for r in recipes:
+	assert all(n in tools for n in r.needs), "Recipe needs undefined "+str(r)
+	for c in r.consumes:
+		assert c in all_goods, str(c)+" unknown"
+	for c in r.creates:
+		assert c in all_goods, str(c)+" unknown "+str(r)
+		 
