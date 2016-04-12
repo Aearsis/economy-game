@@ -2,3 +2,4 @@ Django==1.9.4
 django-bootstrap-form==3.2
 django-timedeltafield==0.7.10
 six==1.10.0
+typing==3.5.0.1
