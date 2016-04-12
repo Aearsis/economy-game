@@ -1,7 +1,14 @@
 from collections import namedtuple
-Recipe = namedtuple("Recipe", "consumes needs creates")
 
-minable = """Kly
+r = namedtuple("recipe_tuple", "consumes needs creates creates_num")
+class Recipe_tuple(r):
+
+	def __new__(self,consumes,needs,creates,creates_num=None):
+		return super().__new__(self,consumes,needs,creates,creates_num)
+
+#	def __new__(self,consumes,needs,creates,creates_num=None):
+
+minable = """Kel
 Zuby žavlozubého tygra
 Králičí žebra
 Tygří kožešina
@@ -16,54 +23,67 @@ Medvědí česnek
 Dobrej pocit
 Písek
 Kamení
-Křemen
-""".split("\n")
+Křemen""".split("\n")
 
 blackmarkatable = """Ticho
 Oheň
 Komiksy na kamených destičkách
 Semínka trávy
 Venuše
-Burák
-""".split("\n")
+Burák""".split("\n")
 
-makable_markatable = """
-sušené maso 
+markatable = """sušené maso 
 Vosk
 Mastek
 Žula
 Kamenec
-bambusová rohožka
-kulaté kamínky na cvrnkání
-proutěná ošatka
-kokosové misky
-lávové kameny
-kamené chodníkové dlaždice
-kamené cihly
-mlýnský kámen
+Pazourek
+Bambusová rohožka
+Kulaté kamínky na cvrnkání
+Proutěná ošatka
+Kokosové misky
+Lávové kameny
+Kamené chodníkové dlaždice
+Kamené cihly
+Mlýnský kámen
 Mýdlo
-Cedrové prkno
-Ebenové prkno
-Smrkové prkno
-Cedrové polínko
-Ebenové polínko
-Smrkové polínko
-leštěné sluneční kamínky
-Lepící kámen
-zkamenělina trilobita
-monolit
+Leštěné sluneční kamínky
+Zkamenělina trilobita
+Monolit""".split("\n")
+
+makable = """Kožená šňůrka
 Robot
 RandomSort
 BubbleSort
 InsertSort
 QuickSort
+Lepící kámen
+Cedrové prkno
+Smrkové prkno
+Ebenové prkno
+Cedrové polínko
+Ebenové polínko
+Smrkové polínko
+Provázek""".split("\n")
+
+all_goods = minable + blackmarkatable + makable + markatable
+
+strategical = """Ebenové prkno
 Kožená šňůrka
 Provázek
-""".split("\n")
+Lepící kámen
+Mýdlo
+Oheň
+Robot
+Lávové kameny
+Žula
+Pazourek
+Křemen
+Leštěné sluneční kamínky""".split("\n")
 
 
-all_goods = minable + blackmarkatable + makable_markatable
-
+for e in strategical:
+	assert e in all_goods, e+" is unknown"
 
 tools = """Pazourková sekerka
 Pazourkové nůžky
@@ -73,27 +93,38 @@ Pazourková pila
 Tesařský průkaz
 Nástrojářský průkaz""".split("\n")
 
+licences = {
+	("Nástrojářský průkaz",):"""Pazourková sekerka
+Pazourkové dláto
+Pazourkové kladivo
+Pazourková pila
+Tesařský průkaz""".split("\n"),
+
+	("Stříhačské oprávnění",):["Pazourkové nůžky"],
+	
+}
+
 recipes = [
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourková pila","Tesařský průkaz"),
 		consumes=(tree,),
 		creates=(tree+"ové prkno",)
 	) for tree in ["Cedr","Smrk","Eben"]
 	] + [
 
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourková sekerka",),
 		consumes=(tree,),
 		creates=(tree+"ové polínko",)
 	) for tree in ["Cedr","Smrk","Eben"]
 	] + [
-	Recipe(
+	Recipe_tuple(
 		needs=(),
 		consumes=("Med","Čistá voda","Kamení"),
 		creates=("Lepící kámen",),
 		)
 	] + [
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourkové nůžky",),
 		consumes=(kuze,),
 		creates=(provazek,)
@@ -101,31 +132,41 @@ recipes = [
 	for provazek in ["Kožená šňůrka","Provázek"]
 	] + [
 
-	Recipe(
+	Recipe_tuple(
+		needs=("Pazourkové nůžky",),
+		consumes=("Mamutí kožešina",),
+		creates=(provazek,),
+		creates_num=(100,)
+	) for provazek in ["Kožená šňůrka","Provázek"]
+
+	] + [
+
+
+	Recipe_tuple(
 		needs=("Pazourkové dláto","Tesařský průkaz"),
 		consumes=("Vosk",),
 		creates=("RandomSort",)
 		),
 
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourkové dláto", "Tesařský průkaz"),
 		consumes=("Mastek",),
 		creates=("InsertSort",)
 	),
 
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourkové dláto", "Tesařský průkaz"),
 		consumes=("Mýdlo","Čistá voda"),
 		creates=("BubbleSort",)
 	),
 
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourkové dláto","Tesařský průkaz"),
 		consumes=("Křemen",),
 		creates=("QuickSort",)
 		),
 
-	Recipe(
+	Recipe_tuple(
 		needs=("Pazourkové kladivo", "Pazourkové dláto"),
 		consumes=("QuickSort", "Křemen", "Žula", "Kamenec"),
 		creates=("Robot",)
@@ -138,8 +179,10 @@ recipes = [
 # TODO: asi by bylo fajn stanovit u receptů taky množství, ale do toho se mi
 # moc nechce. Nechal bych všechno jednou.
 
+print(recipes)
+
 for r in recipes:
-	assert all(n in tools for n in r.needs), "Recipe needs undefined "+str(r)
+	assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined "+str(r)
 	for c in r.consumes:
 		assert c in all_goods, str(c)+" unknown"
 	for c in r.creates:
