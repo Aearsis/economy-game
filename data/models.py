@@ -37,7 +37,8 @@ def generate_entities():
 def generate_recipes():
 	Recipe.objects.all().delete()
 	for r in recipes:
-		nr = Recipe(name="továrna "+r.creates[0],description="TODO")
+		desc = "bere "+" ".join(r.consumes)+", potřebuje "+" ".join(r.needs)
+		nr = Recipe(name="továrna "+" ".join(r.creates),description=desc)
 		nr.save()
 		for i in r.needs:
 			cons = Ingredient(recipe=nr,entity=get_or_create_ent(i),type=Ingredient.NEED, amount=1)
