@@ -135,9 +135,16 @@ class Auction(models.Model):
         return self.auctioneditem_set.filter(amount__gt=0)
 
     @property
+    def visible_sells(self):
+        return self.sells.filter(visible__exact=True)
+
+    @property
     def wants(self):
         return self.auctioneditem_set.filter(amount__lt=0)
 
+    @property
+    def visible_wants(self):
+        return self.wants.filter(visible__exact=True)
 
 class AuctionException(Exception):
     pass
@@ -275,7 +282,7 @@ class AuctionedItem(models.Model):
 class Bid(models.Model):
     auction = models.ForeignKey(Auction)
     team = models.ForeignKey(Team)
-    amount = models.PositiveIntegerField()
+    amount = models.IntegerField()
     placed = timedelta.TimedeltaField()
 
     def block(self, t: Transaction, coef=1):

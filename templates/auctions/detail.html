@@ -21,12 +21,16 @@
     </div>
     {% if is_mine %}
         <div class="col-md-4">
-            <h3>Do aukce přihazují:</h3>
-                <table>
+            <h3>Aukce se účastní:</h3>
+                <table class="table">
                 {% for bid in bids %}
                     <tr>
                         <td>{{ bid.team }}</td>
                         <td>{{ bid.amount|abs }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                    <td>Zatím nikdo.</td>
                     </tr>
                 {% endfor %}
             </table>
@@ -34,7 +38,12 @@
     {% else %}
         <div class="col-md-6">
             <p><strong>Může to být vaše!</strong></p>
-            <p>Nabídněte alespoň {{ minimum|quantity:auc.var_entity }}.</p>
+            {% if current_amount > 0 %}
+                <p>Nabídněte alespoň {{ minimum|quantity:auc.var_entity }}.</p>
+            {% else %}
+                <div class="alert alert-info">Toto je "opačná" aukce. Prodávající nabízí, vyhrává tým kterému stačí nejméně.</div>
+                <p>Požadujte nejvýše {{ minimum|quantity:auc.var_entity }}.</p>
+            {% endif %}
             <form action="{% url "detail" auc.id %}" method="post" class="form-inline">
                 {% csrf_token %}
                 {{ form|bootstrap_inline }}
@@ -50,7 +59,7 @@
     <div class="col-md-4">
         <h3>Nabízí:</h3>
         <ul>
-        {% for ai in auc.sells %}
+        {% for ai in auc.visible_sells %}
             <li>{{ ai.amount|quantity:ai.entity }}</li>
         {% empty %}
             <li>Prodávající nic nenabízí.</li>
@@ -61,7 +70,7 @@
     <div class="col-md-4">
         <h3>Požaduje:</h3>
         <ul>
-        {% for ai in auc.wants %}
+        {% for ai in auc.visible_wants %}
             <li>{{ ai.amount|quantity:ai.entity }}</li>
         {% empty %}
             <li>Prodávající nic nepožaduje.</li>

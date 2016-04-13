@@ -48,7 +48,7 @@ def auction_class(auction, team):
     if winner == team:
         return "success"
 
-    if auction.bid_set.filter(team=team).count() > 0:
+    if team and auction.bid_set.filter(team=team).count() > 0:
         return "danger"
 
     if auction.is_active():
@@ -59,14 +59,15 @@ def auction_class(auction, team):
 
 @register.filter
 def auction_status(auction, team):
-    if auction is WhiteAuction and auction.seller == team:
-        return "Tuto aukci jste vystavili vy."
+    if team:
+        if auction is WhiteAuction and auction.seller == team:
+            return "Tuto aukci jste vystavili vy."
 
-    winner, _foo = auction.effective_offer
-    if winner == team:
-        return "Tuto aukci %s." % ("jste vyhráli" if not auction.is_active() else "vyhráváte")
+        winner, _foo = auction.effective_offer
+        if winner == team:
+            return "Tuto aukci %s." % ("jste vyhráli" if not auction.is_active() else "vyhráváte")
 
-    if auction.bid_set.filter(team=team).count() > 0:
-        return "V této aukci jste byli přehozeni."
+        if auction.bid_set.filter(team=team).count() > 0:
+            return "V této aukci jste byli přehozeni."
 
     return "Této aukce se neúčastníte."

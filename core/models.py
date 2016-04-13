@@ -405,13 +405,13 @@ class InvalidTransaction(Exception):
     def __str__(self):
         err = ""
         if len(self.not_enough) == 1:
-            err += "Nemáš dostatek %s." % ("".join(self.not_enough))
+            err += "Nemáš dostatek %s." % ("".join(map(str, self.not_enough)))
         elif len(self.not_enough) > 1:
-            err += "Nemáš dostatek: %s." % (", ".join(self.not_enough))
+            err += "Nemáš dostatek: %s." % (", ".join(map(str, self.not_enough)))
         if len(self.missing_licences) == 1:
-            return "Nemáš licenci %s" % (", ".join(self.missing_licences))
+            return "Nemáš licenci %s" % ("".join(map(str, self.missing_licences)))
         elif len(self.missing_licences) > 1:
-            return "Nemáš licence: %s" % (", ".join(self.missing_licences))
+            return "Nemáš licence: %s" % (", ".join(map(str, self.missing_licences)))
 
         if err == "":
             err = "Nějaká podivná chyba."

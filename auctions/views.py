@@ -102,7 +102,7 @@ def detail(request, auction):
 
     return render(request, "auctions/detail.html", {
         'auc': auc,
-        'is_mine': auc is WhiteAuction and auc.seller == request.team,
+        'is_mine': auc.seller == request.team,
         'bids': auc.bid_set.all(),
         'winner': winner,
         'form': bf,
