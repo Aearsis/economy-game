@@ -256,7 +256,8 @@ class BlackAuction(Auction):
 
     def commit(self):
         super().commit()
-        Status.add(self.status_text % self)
+# TODO: DO: co tohle má dělat? házelo to chybu
+        #Status.add(self.status_text % self)
 
     @transaction.atomic
     def place_bid(self, team, amount):

@@ -20,8 +20,10 @@ def get_or_create_ent(name):
 	entities[name] = e
 	return e
 
+
 def generate_entities():
 	Entity.objects.all().delete()
+	global entities
 	entities = {}
 	for n in all_goods + tools:
 		get_or_create_ent(n)
@@ -56,9 +58,12 @@ def generate_recipes():
 			cons.save()
 
 
+from data.blackmarket_offers import generate_blackmarket
+
 @transaction.atomic
 def generate_all_data():
 	generate_entities()
 	generate_recipes()
+	generate_blackmarket()
 	return "OK"
 #print(e)

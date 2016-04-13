@@ -1,5 +1,5 @@
 from random import *
-from settings import *
+from data.settings import *
 
 seed(123)
 
