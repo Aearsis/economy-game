@@ -1,10 +1,19 @@
-
+{% load utils %}
 <div class="col-lg-6">
-    {% for status in statuses %}
-        <div class="alert alert-{{ status.type }}">{{ status.message }}</div>
-    {% empty %}
-        <div class="alert alert-info">Prosím vyčkejte začátku hry.</div>
-    {% endfor %}
+    <table class="table">
+        <tbody>
+        {% for status in statuses %}
+            <tr class="text-{{ status.type }}">
+                <td>{{ status.time|gametime }}</td>
+                <td>{{ status.message }}</td>
+            </tr>
+        {% empty %}
+            <tr class="text-info">
+                <td colspan="2">Prosím vyčkejte začátku hry.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 <div class="col-lg-6">
     <table class="table table-balance">

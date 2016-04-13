@@ -3,21 +3,25 @@ from time import timezone
 import builtins
 from django import template
 from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.utils.safestring import mark_safe
 
 from auctions.models import WhiteAuction
 from core.models import *
 
 register = template.Library()
 
+def gametime_tag(delta, format, text):
+    secs = (Game.to_date(delta) - timezone.now()).total_seconds()
+    return mark_safe("<span data-gametime=\"%d\" data-gametime-format=\"%s\">%s</span>" % (secs, format, text))
 
-@register.filter
+@register.filter()
 def gametime(delta, format_string="%(natural)s;%(natural)s"):
     args = {"natural": naturaltime(Game.to_date(delta))}
     before, after = format_string.split(";", 2)
     if Game.time_passed(delta):
-        return after % args
+        return gametime_tag(delta, format_string, after % args)
     else:
-        return before % args
+        return gametime_tag(delta, format_string, before % args)
 
 
 @register.filter(name='abs')
