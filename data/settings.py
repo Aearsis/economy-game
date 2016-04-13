@@ -2,37 +2,38 @@ from collections import namedtuple
 
 r = namedtuple("recipe_tuple", "consumes needs creates creates_num")
 class Recipe_tuple(r):
-
 	def __new__(self,consumes,needs,creates,creates_num=None):
+		if creates_num is None:
+			creates_num = tuple([1]*len(creates))
 		return super().__new__(self,consumes,needs,creates,creates_num)
 
-#	def __new__(self,consumes,needs,creates,creates_num=None):
 
-minable = """Kel
-Zuby žavlozubého tygra
+# rozdělení minable surovin podle obtížnosti (podle toho, jak daleko budou
+# umístěny)
+minable_1 = """Písek
+Kamení
+Kel
 Králičí žebra
 Tygří kožešina
 Mamutí kožešina
-Králičí kožešina
-Eben
+Králičí kožešina""".split("\n")
+
+minable_2 = """Eben
 Cedr
 Smrk
 Čistá voda
-Med
 Medvědí česnek
-Dobrej pocit
-Písek
-Kamení
-Křemen""".split("\n")
+Křemen
+Zuby žavlozubého tygra""".split("\n")
 
-blackmarkatable = """Ticho
-Oheň
-Komiksy na kamených destičkách
-Semínka trávy
-Venuše
-Burák""".split("\n")
+# level 3 může být ty suroviny na ostrůvku
+minable_3 = """Med
+Dobrej pocit""".split("\n")
 
-markatable = """sušené maso 
+minable = minable_1 + minable_2 + minable_3
+
+# seřazené podle toho, jak ty suroviny budou na černém trhu drahé
+markatable = """Sušené maso 
 Vosk
 Mastek
 Žula
@@ -49,7 +50,13 @@ Mlýnský kámen
 Mýdlo
 Leštěné sluneční kamínky
 Zkamenělina trilobita
-Monolit""".split("\n")
+Monolit
+Ticho
+Oheň
+Komiksy na kamených destičkách
+Semínka trávy
+Venuše
+Burák""".split("\n")
 
 makable = """Kožená šňůrka
 Robot
@@ -66,7 +73,7 @@ Ebenové polínko
 Smrkové polínko
 Provázek""".split("\n")
 
-all_goods = minable + blackmarkatable + makable + markatable
+all_goods = minable + makable + markatable
 
 strategical = """Ebenové prkno
 Kožená šňůrka
@@ -168,7 +175,7 @@ recipes = [
 
 	Recipe_tuple(
 		needs=("Pazourkové kladivo", "Pazourkové dláto"),
-		consumes=("QuickSort", "Křemen", "Žula", "Kamenec"),
+		consumes=("QuickSort", "Křemen", "Žula", "Kamenec","Dobrej pocit"),
 		creates=("Robot",)
 		),
 ]
@@ -177,9 +184,9 @@ recipes = [
 # minable, markatable etc., aby se nestalo, že nějaká věc je nedostupná!!!
 
 # TODO: asi by bylo fajn stanovit u receptů taky množství, ale do toho se mi
-# moc nechce. Nechal bych všechno jednou.
+# moc nechce. Všechno bude jenom jednou (nebo náhodné číslo z 1-3)-krát.
 
-print(recipes)
+#print(recipes)
 
 for r in recipes:
 	assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined "+str(r)
@@ -188,3 +195,9 @@ for r in recipes:
 	for c in r.creates:
 		assert c in all_goods, str(c)+" unknown "+str(r)
 		 
+if __name__ == "__main__":
+	print("všech surovin",len(all_goods))
+	print("minable",len(minable))
+	print("markatable",len(markatable))
+	print("strategical",len(strategical))
+	print("makable",len(makable))

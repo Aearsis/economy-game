@@ -51,15 +51,14 @@ def generate_recipes():
 				amount=random.randint(1,3)
 				)
 			cons.save()
-		amounts = [1]*len(r.creates) if not r.creates_num else r.creates_num
-		for j,i in zip(amounts,r.creates):
+		for j,i in zip(r.creates_num,r.creates):
 			cons = Ingredient(recipe=nr,entity=get_or_create_ent(i),type=Ingredient.CREATE, amount=j)
 			cons.save()
 
 
 @transaction.atomic
 def generate_all_data():
-#	generate_entities()
+	generate_entities()
 	generate_recipes()
 	return "OK"
 #print(e)
