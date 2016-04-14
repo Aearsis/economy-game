@@ -20,3 +20,7 @@ tr.ent-licence {
 tr.ent-strategic {
    background-color: #acf;
 }
+
+.pull-center {
+    text-align: center;
+}

@@ -1,0 +1,3 @@
+{% for quantity in quantities %}
+    {{ quantity.entity }} ({{ quantity.amount }} {{ quantity.entity.units }}){% if not forloop.last %},{% endif %}
+{%  endfor %}

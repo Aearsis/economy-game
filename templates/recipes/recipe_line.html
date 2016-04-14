@@ -1,0 +1,9 @@
+{% include "recipes/quantity_list.html" with quantities=recipe_ingred.consumes %}
+⟶
+{% if recipe_ingred.needs|length > 0 %}
+    [<i>
+    {% include "recipes/quantity_list.html" with quantities=recipe_ingred.needs %}
+</i>]
+    ⟶
+{% endif %}
+{% include "recipes/quantity_list.html" with quantities=recipe_ingred.creates %}

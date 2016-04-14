@@ -14,7 +14,7 @@ class Recipe(models.Model):
         creates = []
         consumes = []
 
-        for ingredient in self.recipe_set.all():
+        for ingredient in Ingredient.objects.filter(recipe=self):
             arr = []
             if ingredient.type == Ingredient.NEED:
                 arr = needs
@@ -29,7 +29,7 @@ class Recipe(models.Model):
 
         return (needs, creates, consumes)
 
-    def perform(self, team):
+    def perform(self, team, pretend=False):
         """
         Apply the recipe for the team.
         :raises ValidationError when there is not enough entities
@@ -40,9 +40,13 @@ class Recipe(models.Model):
                 t.needs(team, q.entity, q.amount)
             for q in consumes:
                 t.remove(team, q.entity, q.amount)
-            t.assertValidState()
+            team.assert_valid()
             for q in creates:
                 t.add(team, q.entity, q.amount)
+
+            if pretend:
+                t.clean()
+                t.abort()
 
     def __str__(self):
         return "%s: %s" % (self.name, self.description)

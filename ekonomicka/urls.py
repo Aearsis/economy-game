@@ -20,7 +20,7 @@ import auctions.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^recipe/', include('recipes.urls')),
+    url(r'^recipes/', include('recipes.urls', namespace="recipes")),
     url(r'^tokens/', include('tokens.urls', namespace="token")),
     url(r'^auction/', include('auctions.urls')),
     url(r'^blackmarket/', auctions.views.black_market, name='black'),

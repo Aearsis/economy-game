@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Recept {{ recipe.name }}{% endblock %}
+{% block content %}
+
+    {% if performed %}
+        <div class="alert alert-success">Recept byl proveden</div>
+    {% endif %}
+
+    <h2>{{ recipe_ingred.recipe.name }}
+        <small>{{ recipe_ingred.recipe.description }}</small>
+    </h2>
+
+    <p>{% include "recipes/recipe_line.html" with recipe_ingred=recipe_ingred %}</p>
+
+    <h3>Provedení receptu</h3>
+    {% if is_possible %}
+        <form method="post">
+        {{ form }}
+        {% csrf_token %}
+        <button type="submit" class="button">Proveď recept</button>
+        </form>
+    {% else %}
+        <div class="alert alert-warning">
+            Nelze provést recept: {{ errors }}
+        </div>
+    {% endif %}
+
+    <h3>Váš inventář</h3>
+    {% include "core/team_inventory.html" %}
+
+{% endblock %}
