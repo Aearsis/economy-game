@@ -58,7 +58,7 @@ def get_active_auction(pk):
             raise 1
     except:
         raise Http404("Tato aukce neexistuje.")
-    if auc.whiteauction:
+    if hasattr(auc, 'whiteauction'):
         auc = auc.whiteauction
     else:
         auc = auc.blackauction
@@ -102,8 +102,9 @@ def detail(request, auction):
 
     return render(request, "auctions/detail.html", {
         'auc': auc,
-        'is_mine': auc.seller == request.team,
+        'is_mine': auc.is_white() and auc.seller == request.team,
         'bids': auc.bid_set.all(),
+        'seller_name': auc.get_seller_name(),
         'winner': winner,
         'form': bf,
         'current_amount': current_amount,

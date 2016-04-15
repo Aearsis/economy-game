@@ -157,6 +157,12 @@ class WhiteAuction(Auction):
     def __str__(self):
         return "Aukce od týmu %s" % self.seller
 
+    def is_white(self):
+        return True
+
+    def get_seller_name(self):
+        return self.seller.name
+
     @staticmethod
     def get_all_active():
         now = Game.game_time()
@@ -238,6 +244,12 @@ class BlackAuction(Auction):
 
     def __str__(self):
         return "Černý trh: %s" % self.status_text
+
+    def is_white(self):
+        return False
+
+    def get_seller_name(self):
+        return self.seller_name
 
     def commit(self):
         super().commit()
