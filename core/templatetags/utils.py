@@ -15,9 +15,11 @@ def gametime_tag(delta, format, text):
     return mark_safe("<span data-gametime=\"%d\" data-gametime-format=\"%s\">%s</span>" % (secs, format, text))
 
 @register.filter()
-def gametime(delta, format_string="%(natural)s;%(natural)s"):
+def gametime(delta, format_string="%(natural)s;%(natural)s;"):
+    before, after, none = format_string.split(";", 3)
+    if delta is None:
+        return none
     args = {"natural": naturaltime(Game.to_date(delta))}
-    before, after = format_string.split(";", 2)
     if Game.time_passed(delta):
         return gametime_tag(delta, format_string, after % args)
     else:

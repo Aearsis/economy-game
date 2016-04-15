@@ -5,7 +5,7 @@ import datetime
 
 class Auction(models.Model):
     begin = timedelta.TimedeltaField()
-    end = timedelta.TimedeltaField()
+    end = timedelta.TimedeltaField(blank=True, null=True)
 
     # buyer gives seller the highest possible amount of var_entity.
     # positive: buyer --> seller
@@ -18,7 +18,7 @@ class Auction(models.Model):
     buyer = models.ForeignKey(Team, null=True, blank=True)
 
     def is_active(self):
-        return not Game.time_passed(self.end) and Game.time_passed(self.begin)
+        return Game.time_passed(self.begin) and (self.end is None or not Game.time_passed(self.end))
 
     @property
     def ordered_bids(self):
@@ -97,7 +97,7 @@ class Auction(models.Model):
         Add entities bought, remove sold (including variable in var_amount).
         Remember to unblock everything.
         """
-        pass # generic auction has no seller
+        pass  # generic auction has no seller
 
     def _commit_buyer(self, t: Transaction, var_amount):
         """
@@ -145,6 +145,7 @@ class Auction(models.Model):
     @property
     def visible_wants(self):
         return self.wants.filter(visible__exact=True)
+
 
 class AuctionException(Exception):
     pass
@@ -233,7 +234,6 @@ class WhiteAuction(Auction):
         else:
             Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
 
-
     class Meta:
         verbose_name_plural = "Auctions"
 
@@ -254,6 +254,13 @@ class BlackAuction(Auction):
     def commit(self):
         super().commit()
         Status.add(self.status_text % self)
+
+    @transaction.atomic
+    def place_bid(self, team, amount):
+        super().place_bid(team, amount)
+
+        if self.end is None:
+            self.end = Game.game_time() + datetime.timedelta(minutes=10)
 
     class Meta:
         verbose_name_plural = "Black market offers"
