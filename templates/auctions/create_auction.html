@@ -100,6 +100,7 @@
                 var cont = $(this);
                 $(this).find('.dfs-more').click(function() {
                     if (total >= 1000) return;
+                    var total = total_el.val();
                     var newrow = empty.clone()
                             .removeClass('dfs-template hidden')
                             .addClass('dfs-row dfs-row-' + total);
@@ -110,8 +111,8 @@
                 });
                 $(this).find('.dfs-less').click(function() {
                     var total = total_el.val();
-                    if (total <= 0) return;
-                    cont.find('.dfs-row-' + total).remove();
+                    if (total <= 1) return;
+                    cont.find('.dfs-row-' + (total-1)).remove();
                     total--;
                     total_el.val(total);
                 });
