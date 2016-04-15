@@ -24,3 +24,15 @@ tr.ent-strategic {
 .pull-center {
     text-align: center;
 }
+
+.recipe-performable {
+
+}
+
+.recipe-nonperformable {
+    background-color: transparent;
+}
+
+.recipe-nonperformable small, .recipe-nonperformable a, .recipe-nonperformable {
+    color: #828282 !important;
+}

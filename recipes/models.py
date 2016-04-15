@@ -48,6 +48,14 @@ class Recipe(models.Model):
                 t.clean()
                 t.abort()
 
+    def can_perform(self, team):
+        """ Returns True when a team can perform the recipe """
+        try:
+            self.perform(team, pretend=True)
+            return True
+        except:
+            return False
+
     def __str__(self):
         return "%s: %s" % (self.name, self.description)
 
