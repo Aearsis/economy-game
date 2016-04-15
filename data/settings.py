@@ -75,6 +75,7 @@ Provázek""".split("\n")
 
 all_goods = minable + makable + markatable
 
+
 strategical = """Ebenové prkno
 Kožená šňůrka
 Provázek
@@ -92,6 +93,7 @@ Leštěné sluneční kamínky""".split("\n")
 for e in strategical:
 	assert e in all_goods, e+" is unknown"
 
+# licence k receptům
 tools = """Pazourková sekerka
 Pazourkové nůžky
 Pazourkové dláto
@@ -100,16 +102,16 @@ Pazourková pila
 Tesařský průkaz
 Nástrojářský průkaz""".split("\n")
 
-licences = {
-	("Nástrojářský průkaz",):"""Pazourková sekerka
+licences = [
+	("Nástrojářský průkaz", i) for i in """Pazourková sekerka
 Pazourkové dláto
 Pazourkové kladivo
 Pazourková pila
-Tesařský průkaz""".split("\n"),
-
-	("Stříhačské oprávnění",):["Pazourkové nůžky"],
+Tesařský průkaz""".split("\n")
+	] + [
+	("Stříhačské oprávnění", "Pazourkové nůžky")
+	]
 	
-}
 
 recipes = [
 	Recipe_tuple(
