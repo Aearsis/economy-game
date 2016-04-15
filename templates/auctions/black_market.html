@@ -19,7 +19,7 @@
                     <p>(TODO: obrázkové znázornění)</p>
                     <hr>
                     <p><i>{{ auc|auction_status:user.player.team }}</i></p>
-                    <p><i>{{ auc.end|gametime:"Aukce končí %(natural)s.;Aukce už skončila." }}</i></p>
+                    <p><i>{{ auc.end|gametime:"Aukce končí %(natural)s.;Aukce už skončila.;Nabídka zatím spí." }}</i></p>
                 </div>
                 <div class="panel-footer text-center">
                     <a href="{% url "detail" auc.id %}">detail</a>

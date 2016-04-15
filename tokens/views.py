@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 
 from core.models import InvalidTransaction
-from ekonomicka.utils import team_required
+from ekonomicka.utils import team_required, game_running_required
 from tokens.models import Token, TokenUnusableException
 
 
@@ -11,6 +11,7 @@ class TokenForm(forms.Form):
     code = forms.CharField(min_length=Token.LENGTH, max_length=Token.LENGTH, label="Kód lístečku:")
 
 @team_required
+@game_running_required
 def token_input(request):
     if request.method == 'POST':
         try:
