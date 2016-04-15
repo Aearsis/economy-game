@@ -83,14 +83,17 @@ class Auction(models.Model):
         team_bid.placed = Game.game_time()
         team_bid.save()
 
-        with Transaction() as t:
-            if highest_bid is not None:
-                highest_bid.unblock(t)
+        try:
+            with Transaction() as t:
+                if highest_bid is not None:
+                    highest_bid.unblock(t)
 
-            if highest_bid is None or highest_bid.amount < team_bid.amount:
-                highest_bid = team_bid
+                if highest_bid is None or highest_bid.amount < team_bid.amount:
+                    highest_bid = team_bid
 
-            highest_bid.block(t)
+                highest_bid.block(t)
+        except InvalidTransaction as e:
+            raise AuctionException("Nelze přihodit: "+str(e))
 
     def _commit_seller(self, t: Transaction, var_amount):
         """
