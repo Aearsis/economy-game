@@ -2,10 +2,20 @@ from PIL import Image
 
 from core.models import Entity
 
+
 def path(name):
     return "icons/%s.png" % name
 
-images = [(e.id, Image.open(path(e.name))) for e in Entity.objects.all()]
+
+def image(entity):
+    try:
+        return Image.open(path(entity.name))
+    except:
+        print("Chybi %s!" % entity)
+        return Image.open(path("Neznámé"))
+
+
+images = [(e.id, image(e)) for e in Entity.objects.all()]
 
 w = sum([i.size[0] for _, i in images])
 mh = max([i.size[1] for _, i in images])
