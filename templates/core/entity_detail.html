@@ -42,5 +42,18 @@ Předmět není v žádných aukcích.
 {% endif %}
 </p>
 
+<p>
+{% if recipes|length > 0 %}
+Předmětu se týkají tyto recepty:
+    <ul>
+    {% for recipe in recipes %}
+    <li><a href="{% url "recipes:detail" recipe.id %}">{{ recipe.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+Předmětu se netýkají žádné recepty.
+{% endif %}
+</p>
+
 
 {% endblock %}
