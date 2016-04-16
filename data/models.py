@@ -38,6 +38,7 @@ class EntitiesBuffer:
 		self.mapping[name].price = price
 
 	def get_price(self, name):
+		print(name)
 		return self.mapping[name].price
 		
 
@@ -89,6 +90,8 @@ def generate_pricelist(buf):
 	for k,v in all_pricelist.items():
 		buf.set_price(k, v)
 
+	return buf
+
 from data.blackmarket_offers import generate_blackmarket
 
 @transaction.atomic
@@ -97,6 +100,13 @@ def generate_all_data():
 	buf = generate_licences(buf)
 	buf = generate_recipes(buf)
 	buf = generate_pricelist(buf)
+
+	for x in buf.mapping:
+		try:
+			buf.get_entity(x).price
+		except AttributeError:
+			print("entity %s doesn't have price" % x)
+			raise
 
 	
 	generate_blackmarket(buf)

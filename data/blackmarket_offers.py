@@ -85,6 +85,7 @@ class SellerBase:
 	'''abstract class'''
 
 	def __init__(self, buf):
+		print("jsem v seller konstruktoru")
 		self.game_len = Game.the_row().length
 		self.model = buf
 		self.seller_name = "base"
@@ -97,17 +98,20 @@ class SellerBase:
 		raise NotImplemented()
 
 	def create_auction_object(self,entity="Kel"):
+		print(self.model)
 		a = BlackAuction(
 			begin=datetime.timedelta(seconds=1),
 			end=None,
-			var_entity_id=get_or_create_ent(entity).id,
+			var_entity=self.model.get_or_create_ent(entity),
 			var_min = 10,
 			seller_name=seller_name(),
 			status_text=fair_status()
 			)
+		return a
 
 	def price(self, entity):
-		return self.buf.get_price(entity)
+		print(entity)
+		return self.model.get_price(entity)
 
 	def get_items_to_price(self, price, items):
 		'''choices random items whose sum of price is as nearest as posible to
@@ -116,6 +120,7 @@ class SellerBase:
 		it chooses it 10-times randomly and returns the best attempt
 		'''
 
+		print("tady",items)
 		m_items = []
 		m_val = float("-inf")
 		for _ in range(10):
@@ -146,10 +151,10 @@ class SellerBase:
 
 		if random()<0.5:
 			var = choice(buy)
-			buy = buy.pop(buy.index(var))
+			buy.pop(buy.index(var))
 		else:
 			var = choice(sell)
-			sell = sell.pop(sell.index(var))
+			sell.pop(sell.index(var))
 
 		auction = self.create_auction_object()
 		auction.save()
@@ -167,7 +172,8 @@ class SellerBase:
 		a.save()
 
 	def estimate_price(self, auction, coef):
-		diff = sum(item.price * item.amount in auction.auctioneditem_set.all())
+		print(list(x.entity.price for x in auction.auctioneditem_set.all()))
+		diff = sum(item.entity.price * item.amount for item in auction.auctioneditem_set.all())
 		return diff * coef
 
 
@@ -175,7 +181,7 @@ class SellerBase:
 		item = AuctionedItem(
 			auction=auction,
 # TODO
-			entity=get_or_create_ent(entity_name),
+			entity=self.model.get_or_create_ent(entity_name),
 			amount=amount,
 			visible=visible,
 			will_sell=will_sell
@@ -185,6 +191,31 @@ class SellerBase:
 
 	def generate(self):
 		raise NotImplemented()
+
+class TrivialSeller(SellerBase):
+	
+	def __init__(self, model):
+		super().__init__(model)
+
+	def max_buy(self, time):
+		return 10
+
+	def max_sell(self, time):
+		return 10
+
+	def income_coef(self, time):
+		return 1
+
+	def generate(self):
+		self.generate_one(0.01)
+
+	def buying_entities(self,time):
+		return ["Kel","Písek"]
+
+	def selling_entities(self,time):
+		return ["Křemen", "Žula"]
+
+
 	
 
 
@@ -385,9 +416,15 @@ class RandomStuffRiscantBAGenerator(BlackAuctionGenerator):
 
 def generate_blackmarket(buf):
 	
+	x = buf.get_entity("Kel")
+	print("tohle",vars(x))
+	print(type(x))
+	print(x.price)
+
 	sellers = [
 		#LicenceBAGenerator(buf),
 		#RandomStuffRiscantBAGenerator(buf)
+		TrivialSeller(buf),
 		]
 
 	BlackAuction.objects.all().delete()

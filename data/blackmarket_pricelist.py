@@ -54,5 +54,7 @@ while queue:
 
 if __name__ == "__main__":
 	print(all_pricelist)
+	print(len(all_pricelist.keys()))
+	print(len(all_goods))
 	print()
 	print(makable_pricelist)
