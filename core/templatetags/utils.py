@@ -7,8 +7,13 @@ from django.utils.safestring import mark_safe
 
 from auctions.models import WhiteAuction
 from core.models import *
-
+from django.contrib import messages
+from django.forms import inlineformset_factory
+from django.http import Http404
+from django.shortcuts import render, redirect
+from ekonomicka.utils import *
 register = template.Library()
+
 
 def gametime_tag(delta, format, text):
     secs = (Game.to_date(delta) - timezone.now()).total_seconds()
@@ -85,3 +90,9 @@ def auction_status(auction, team):
             return "V této aukci jste byli přehozeni."
 
     return "Této aukce se neúčastníte."
+
+
+@register.filter
+def entity_link(entity: Entity):
+    return mark_safe('<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), entity.name))
+

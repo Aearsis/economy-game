@@ -4,12 +4,16 @@ from django.shortcuts import render, redirect
 from .forms import *
 from core.models import *
 from ekonomicka.utils import *
+from recipes.models import *
+from auctions.models import *
+
 
 @team_required
 def team(request):
     return render(request, "core/team.html", {
         'team' : request.team,
     })
+
 
 @player_required
 def create_team(request, next = "/team"):
@@ -64,6 +68,38 @@ def wait_to_start(request):
             return redirect(reverse("team"))
     else:
         return render(request, "core/wait.html")
+
+
+def entity_detail(request, entity_id):
+
+    entity = Entity.objects.get(id=entity_id)
+    licences = entity.licences.all()
+
+    # owners of the entity
+    balances = Balance.objects.filter(entity=entity, amount__gt=0)
+
+    # what recipes it is used in
+    ingredients = Ingredient.objects.filter(entity=entity)
+    recipes = {ingr.recipe for ingr in ingredients}
+
+    # auctions
+    items = AuctionedItem.objects.filter(entity=entity)
+    auctions_var = Auction.objects.filter(var_entity=entity)
+    auctions_set = {item.auction for item in items}.union({auction for auction in auctions_var})
+
+    auctions = []
+    for auction in auctions_set:
+        if auction.is_active():
+            auctions.append(auction)
+    auctions.sort(key=lambda auc: auction.concrete_auction.is_white())
+
+    return render(request, "core/entity_detail.html", {
+        'entity': entity,
+        'balances' : balances,
+        'licences' : licences,
+        'recipes' : recipes,
+        'auctions' : auctions,
+    })
 
 def router(request):
     """

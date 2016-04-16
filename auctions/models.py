@@ -17,6 +17,13 @@ class Auction(models.Model):
     commited = models.BooleanField(default=False)
     buyer = models.ForeignKey(Team, null=True, blank=True)
 
+    @property
+    def concrete_auction(self):
+        if hasattr(self, 'whiteauction'):
+            return self.whiteauction
+        else:
+            return self.blackauction
+
     def is_active(self):
         return Game.time_passed(self.begin) and (self.end is None or not Game.time_passed(self.end))
 
@@ -247,6 +254,10 @@ class BlackAuction(Auction):
 
     def __str__(self):
         return "Černý trh: %s" % self.status_text
+
+    @property
+    def description(self):
+        return "Černá aukce prodejce %s" % self.seller_name
 
     def is_white(self):
         return False
