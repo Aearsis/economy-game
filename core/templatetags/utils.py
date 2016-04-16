@@ -1,16 +1,8 @@
-from time import timezone
-
-import builtins
-from django import template
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.safestring import mark_safe
 
 from auctions.models import WhiteAuction
 from core.models import *
-from django.contrib import messages
-from django.forms import inlineformset_factory
-from django.http import Http404
-from django.shortcuts import render, redirect
 from ekonomicka.utils import *
 register = template.Library()
 
