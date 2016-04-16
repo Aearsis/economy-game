@@ -98,4 +98,5 @@ def generate_all_data():
 	buf = generate_recipes(buf)
 	buf = generate_pricelist(buf)
 
-	#generate_blackmarket(buf)
+	
+	generate_blackmarket(buf)

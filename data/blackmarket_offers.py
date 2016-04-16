@@ -208,7 +208,6 @@ class EvolvingSetting:
 		'''setting: list of pairs (percent_time, value) or a dict. In percent_time
 		a setting will be changed to value
 		'''
-		self.game_len = Game.objects.all()[0].length
 
 		self.setting = dict(setting)
 		assert 0 in self.setting, 'setting must contain 0 (initial value)'
@@ -386,7 +385,7 @@ class RandomStuffRiscantBAGenerator(BlackAuctionGenerator):
 
 def generate_blackmarket(buf):
 	
-	seller = [
+	sellers = [
 		#LicenceBAGenerator(buf),
 		#RandomStuffRiscantBAGenerator(buf)
 		]
@@ -394,6 +393,6 @@ def generate_blackmarket(buf):
 	BlackAuction.objects.all().delete()
 
 
-	for f in factories:
+	for f in sellers:
 		f.generate()
 		f.flush()
