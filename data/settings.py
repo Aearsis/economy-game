@@ -11,20 +11,18 @@ class Recipe_tuple(r):
 # rozdělení minable surovin podle obtížnosti (podle toho, jak daleko budou
 # umístěny)
 minable_1 = """Písek
-Kamení
-Kel
-Králičí žebra
+Kámen
+Mamutí kel
+Žebírka
 Tygří kožešina
 Mamutí kožešina
 Králičí kožešina""".split("\n")
 
-minable_2 = """Eben
-Cedr
-Smrk
+minable_2 = """
 Čistá voda
 Medvědí česnek
 Křemen
-Zuby žavlozubého tygra""".split("\n")
+Zub šavlozubého tygra""".split("\n")
 
 # level 3 může být ty suroviny na ostrůvku
 minable_3 = """Med
@@ -43,9 +41,10 @@ Bambusová rohožka
 Kulaté kamínky na cvrnkání
 Proutěná ošatka
 Kokosové misky
+Kokosová miska
 Lávové kameny
-Kamené chodníkové dlaždice
-Kamené cihly
+Kamenné dlaždice
+Kamenné cihly
 Mlýnský kámen
 Mýdlo
 Leštěné sluneční kamínky
@@ -53,7 +52,7 @@ Zkamenělina trilobita
 Monolit
 Ticho
 Oheň
-Komiksy na kamených destičkách
+Kamenná destička s komiksem
 Semínka trávy
 Venuše
 Burák""".split("\n")
@@ -68,10 +67,13 @@ Lepící kámen
 Cedrové prkno
 Smrkové prkno
 Ebenové prkno
-Cedrové polínko
-Ebenové polínko
-Smrkové polínko
-Provázek""".split("\n")
+Cedrové desky
+Smrkové desky
+Ebenové desky
+Cedrová polínka
+Ebenová polínka
+Smrková polínka
+Špagát""".split("\n")
 
 
 
@@ -89,7 +91,7 @@ Křemen
 Leštěné sluneční kamínky""".split("\n")
 
 # licence k receptům
-tools = """Pazourková sekerka
+tools = """Pazourková sekera
 Pazourkové nůžky
 Pazourkové dláto
 Pazourkové kladivo
@@ -114,7 +116,7 @@ Pazourkové kladivo
 Pazourková pila
 Tesařský průkaz""".split("\n")
 	] + [
-	("Stříhačské oprávnění", "Pazourkové nůžky")
+	("Střihačské oprávnění", "Pazourkové nůžky")
 	]
 
 for a,b in licences:
