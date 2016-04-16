@@ -32,8 +32,16 @@ def absolute(val):
 
 
 @register.filter
+def entity_icon(entity):
+    return mark_safe("<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name))
+
+
+@register.filter
 def quantity(amount, entity):
-    return "%d %s %s" % (abs(int(amount)), entity.units, entity.name)
+    amount = abs(int(amount))
+    if amount <= 3:
+        return mark_safe(entity_icon(entity) * amount)
+    return mark_safe("%s&times;%s" % (amount, entity_icon(entity)))
 
 
 @register.filter(is_safe=True)

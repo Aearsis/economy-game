@@ -1,4 +1,4 @@
-
+{% load utils %}
 <table class="table table-balance">
     <thead>
     <tr>
@@ -13,9 +13,9 @@
         {% if not balance.all_zero %}
             <tr class="{{ balance.entity.css_class }}">
                 <th>{{ balance.entity.name }}</th>
-                <td>{{ balance.amount }}{{ balance.unit }}</td>
-                <td>{{ balance.blocked }}{{ balance.unit }}</td>
-                <th>{{ balance.total }}{{ balance.unit }}</th>
+                <td>{{ balance.amount|quantity:balance.entity }}</td>
+                <td>{{ balance.blocked|quantity:balance.entity }}</td>
+                <th>{{ balance.total|quantity:balance.entity }}</th>
             </tr>
         {% endif %}
         {% endfor %}
