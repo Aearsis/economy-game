@@ -90,9 +90,13 @@ from data.blackmarket_offers import generate_blackmarket
 @transaction.atomic
 def generate_all_data():
 	buf = generate_entities()
+	print("entites done")
 	buf = generate_licences(buf)
+	print("licences done")
 	buf = generate_recipes(buf)
+	print("recipes done")
 	buf = generate_pricelist(buf)
+	print("pricelist done")
 
 	for x in all_goods:
 		try:
@@ -103,3 +107,4 @@ def generate_all_data():
 
 	
 	generate_blackmarket(buf)
+	print("blackmarket done")
