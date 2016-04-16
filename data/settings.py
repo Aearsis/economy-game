@@ -18,8 +18,7 @@ Tygří kožešina
 Mamutí kožešina
 Králičí kožešina""".split("\n")
 
-minable_2 = """
-Čistá voda
+minable_2 = """Čistá voda
 Medvědí česnek
 Křemen
 Zub šavlozubého tygra""".split("\n")
@@ -76,20 +75,6 @@ Smrková polínka
 Špagát""".split("\n")
 
 
-
-strategical = """Ebenové prkno
-Kožená šňůrka
-Provázek
-Lepící kámen
-Mýdlo
-Oheň
-Robot
-Lávové kameny
-Žula
-Pazourek
-Křemen
-Leštěné sluneční kamínky""".split("\n")
-
 # licence k receptům
 tools = """Pazourková sekera
 Pazourkové nůžky
@@ -104,52 +89,71 @@ Nástrojářský průkaz""".split("\n")
 all_goods = minable + makable + markatable + tools
 
 
+
+# TODO na ŠE a KY: Špagát je nové jméno pro Špagát?
+strategical = """Ebenové prkno
+Kožená šňůrka
+Špagát
+Lepící kámen
+Mýdlo
+Oheň
+Robot
+Lávové kameny
+Žula
+Pazourek
+Křemen
+Leštěné sluneční kamínky""".split("\n")
+
 for e in strategical:
-	assert e in all_goods, e+" is unknown"
+	assert e in all_goods, e+" is a strategical entity, but it must be mentioned first above"
 
 
 
+# list of pairs (license, licenced entity)
+# both must be mentioned among all_goods before
 licences = [
-	("Nástrojářský průkaz", i) for i in """Pazourková sekerka
-Pazourkové dláto
+	("Nástrojářský průkaz", i) for i in """Pazourkové dláto
 Pazourkové kladivo
 Pazourková pila
 Tesařský průkaz""".split("\n")
 	] + [
-	("Střihačské oprávnění", "Pazourkové nůžky")
+#	("Střihačské oprávnění", "Pazourkové nůžky")
 	]
 
 for a,b in licences:
-	assert a in all_goods, "%s unknown" % a
-	assert b in all_goods, "%s unknown" % b
+	assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
+	assert b in all_goods, "%s unknown although it's a licenced entity. It must be mentioned earlier." % b
 	
 
+# TODO: it doesn't allow numbers of consume or create now
 recipes = [
-	Recipe_tuple(
-		needs=("Pazourková pila","Tesařský průkaz"),
-		consumes=(tree,),
-		creates=(tree+"ové prkno",)
-	) for tree in ["Cedr","Smrk","Eben"]
-	] + [
+#[
+#	Recipe_tuple(
+#		needs=("Pazourková pila","Tesařský průkaz"),
+#		consumes=(tree,),
+#		creates=(tree+"ové prkno",)
+#	) for tree in ["Cedr","Smrk","Eben"]
+# ] + [
 
-	Recipe_tuple(
-		needs=("Pazourková sekerka",),
-		consumes=(tree,),
-		creates=(tree+"ové polínko",)
-	) for tree in ["Cedr","Smrk","Eben"]
-	] + [
-	Recipe_tuple(
-		needs=(),
-		consumes=("Med","Čistá voda","Kamení"),
-		creates=("Lepící kámen",),
-		)
-	] + [
+#
+#	Recipe_tuple(
+#		needs=("Pazourková sekerka",),
+#		consumes=(tree,),
+#		creates=(tree+"ové polínko",)
+#	) for tree in ["Cedr","Smrk","Eben"]
+#	] + [
+#	Recipe_tuple(
+#		needs=(),
+#		consumes=("Med","Čistá voda","Kamení"),
+#		creates=("Lepící kámen",),
+#		)
+#	] + [
 	Recipe_tuple(
 		needs=("Pazourkové nůžky",),
 		consumes=(kuze,),
 		creates=(provazek,)
 	) for kuze in ["Tygří kožešina","Mamutí kožešina","Králičí kožešina"] \
-	for provazek in ["Kožená šňůrka","Provázek"]
+	for provazek in ["Kožená šňůrka","Špagát"]
 	] + [
 
 	Recipe_tuple(
@@ -157,7 +161,7 @@ recipes = [
 		consumes=("Mamutí kožešina",),
 		creates=(provazek,),
 		creates_num=(100,)
-	) for provazek in ["Kožená šňůrka","Provázek"]
+	) for provazek in ["Kožená šňůrka","Špagát"]
 
 	] + [
 

@@ -1,7 +1,6 @@
 from random import *
 from data.settings import *
 
-seed(123)
 
 def randfloat(a,b):
 	assert a<=b
@@ -28,16 +27,15 @@ strategical_pricelist = [ (s,int(max_price*randfloat(0.8,4))) for s in strategic
 
 
 # make dicts:
-all_pricelist = dict(minable_pricelist+market_pricelist+tools_pricelist+strategical_pricelist)
-minable_pricelist = dict(minable_pricelist)
-market_pricelist = dict(market_pricelist)
-tools_pricelist = dict(tools_pricelist)
-strategical_pricelist = dict(strategical_pricelist)
+all_pricelist = dict(minable_pricelist + market_pricelist + tools_pricelist)
 
+# override prices of strategical entites
+for k,v in strategical_pricelist:
+	all_pricelist[k] = v
 
 # cena makable surovin je vždy (3-5)-krát vyšší než cena vstupních surovin
-makable_pricelist = {}
 queue = [ r for r in recipes ]
+# if this creates an infinite loop then there is a cycle between makable entities
 while queue:
 	r = queue.pop(0)
 	try:
@@ -48,12 +46,16 @@ while queue:
 		continue
 	final_cost = (needs_cost*randint(3,5))//len(r.creates)
 	for c in r.creates:
-		makable_pricelist[c] = final_cost
 		all_pricelist[c] = final_cost
 
+
+for e in makable:
+	if not e in all_pricelist:
+		print("WARNING: there exists a makable entity %s, but any receipt creates it!!!" % e)
+		all_pricelist[e] = 0
+
+print(all_pricelist)
 if __name__ == "__main__":
-	print(all_pricelist)
 	print(len(all_pricelist.keys()))
 	print(len(all_goods))
 	print()
-	print(makable_pricelist)
