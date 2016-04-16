@@ -29,11 +29,6 @@ def absolute(val):
 
 
 @register.filter
-def entity_icon(entity):
-    return mark_safe("<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name))
-
-
-@register.filter
 def quantity(amount, entity):
     amount = abs(int(amount))
     if amount <= 3:
@@ -85,6 +80,18 @@ def auction_status(auction, team):
 
 
 @register.filter
-def entity_link(entity: Entity):
-    return mark_safe('<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), entity.name))
+def entity_link_href(entity: Entity, inside):
+    return '<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), inside)
+
+
+@register.filter
+def entity_link(entity):
+    return mark_safe(entity_link_href(entity, entity.name))
+
+
+@register.filter
+def entity_icon(entity):
+    return mark_safe(entity_link_href(entity, "<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name)))
+
+
 
