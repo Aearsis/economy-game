@@ -34,8 +34,7 @@ class BlackAuctionGenerator:
 	'''This is an abstract class'''
 
 	def __init__(self):
-		# TODO the_row
-		self.game_len = Game.objects.all()[0].length
+		self.game_len = Game.the_row().length
 
 		self.buffer = []
 
@@ -43,7 +42,7 @@ class BlackAuctionGenerator:
 		a = BlackAuction(
 			begin=datetime.timedelta(seconds=1),
 			end=None,
-			var_entity_id=get_or_create_ent(entity).id,
+			var_entity=get_or_create_ent(entity),
 			var_min = 10,
 			seller_name=seller_name(),
 			status_text=fair_status()
@@ -408,11 +407,22 @@ class RandomStuffRiscantBAGenerator(BlackAuctionGenerator):
 
 			self.create_random_stuff_auction(perc_time)
 
+class StaticAuction(SellerBase):
+	def __init__(self, coef, *args, **kwargs):
+		self.estimate = not 'var_min' in kwargs.keys()
+		if self.estimate:
+			kwargs['var_min'] = 0
+		self.coef = coef
+		self.b = BlackAuction(*args, **kwargs)
+		self.b.save()
 
+	def __enter__(self):
+		return self.b
 
-
-
-
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		if self.estimate:
+			self.estimate_price(self.b, self.coef)
+			self.b.save()
 
 def generate_blackmarket(buf):
 	
@@ -433,3 +443,13 @@ def generate_blackmarket(buf):
 	for f in sellers:
 		f.generate()
 		f.flush()
+
+	def e(*args, **kwargs):
+		return (buf.get_or_create_ent(*args, **kwargs))
+
+	with StaticAuction(1,
+			begin=datetime.timedelta(minutes=10),
+			var_entity=e('Oheň')) as b:
+		b.add_item(e('Žula'), 1)
+		b.add_item(e('Žula'), 1)
+

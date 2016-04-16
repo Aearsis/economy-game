@@ -100,7 +100,7 @@ class Auction(models.Model):
 
                 highest_bid.block(t)
         except InvalidTransaction as e:
-            raise AuctionException("Nelze přihodit: "+str(e))
+            raise AuctionException("Nelze přihodit: " + str(e))
 
     def _commit_seller(self, t: Transaction, var_amount):
         """
@@ -244,6 +244,9 @@ class WhiteAuction(Auction):
         else:
             Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
 
+    def add_item(self, entity: Entity, amount, *args, **kwargs):
+        self.auctioneditem_set.create(entity, amount, *args, **kwargs)
+
     class Meta:
         verbose_name_plural = "Auctions"
 
@@ -267,8 +270,9 @@ class BlackAuction(Auction):
 
     def commit(self):
         super().commit()
-# TODO: DO: co tohle má dělat? házelo to chybu
-        #Status.add(self.status_text % self)
+
+    # TODO: DO: co tohle má dělat? házelo to chybu
+    # Status.add(self.status_text % self)
 
     @transaction.atomic
     def place_bid(self, team, amount):

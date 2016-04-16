@@ -40,7 +40,7 @@ class EntitiesBuffer:
 	def get_price(self, name):
 		print(name)
 		return self.mapping[name].price
-		
+
 
 def generate_entities():
 	buf = EntitiesBuffer()
@@ -108,5 +108,4 @@ def generate_all_data():
 			print("entity %s doesn't have price" % x)
 			raise
 
-	
 	generate_blackmarket(buf)
