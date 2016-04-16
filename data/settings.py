@@ -118,8 +118,8 @@ Tesařský průkaz""".split("\n")
 	]
 
 for a,b in licences:
-	assert a in licences, "%s unknown" % a
-	assert b in licences, "%s unknown" % b
+	assert a in all_goods, "%s unknown" % a
+	assert b in all_goods, "%s unknown" % b
 	
 
 recipes = [

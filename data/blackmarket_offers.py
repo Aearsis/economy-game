@@ -43,7 +43,7 @@ class BlackAuctionGenerator:
 		a = BlackAuction(
 			begin=datetime.timedelta(seconds=1),
 			end=None,
-			var_entity_id=get_or_create_ent(entity).id,
+			var_entity_id=get_entity(entity).id,
 			var_min = 10,
 			seller_name=seller_name(),
 			status_text=fair_status()
@@ -102,7 +102,7 @@ class SellerBase:
 		a = BlackAuction(
 			begin=datetime.timedelta(seconds=1),
 			end=None,
-			var_entity=self.model.get_or_create_ent(entity),
+			var_entity=self.model.get_entity(entity),
 			var_min = 10,
 			seller_name=seller_name(),
 			status_text=fair_status()
@@ -168,20 +168,18 @@ class SellerBase:
 			self.add_auction_item(auction, ent, am)
 
 		var_min = self.estimate_price(auction, self.income_coef(time))
-		a.var_min = var_min
-		a.save()
+		auction.var_min = var_min
+		auction.save()
 
 	def estimate_price(self, auction, coef):
-		print(list(x.entity.price for x in auction.auctioneditem_set.all()))
-		diff = sum(item.entity.price * item.amount for item in auction.auctioneditem_set.all())
+		diff = sum(self.model.get_entity(item.entity.name).price * item.amount for item in auction.auctioneditem_set.all())
 		return diff * coef
 
 
 	def add_auction_item(self,auction,entity_name,amount,visible=True,will_sell=True):
 		item = AuctionedItem(
 			auction=auction,
-# TODO
-			entity=self.model.get_or_create_ent(entity_name),
+			entity=self.model.get_entity(entity_name),
 			amount=amount,
 			visible=visible,
 			will_sell=will_sell
@@ -432,4 +430,3 @@ def generate_blackmarket(buf):
 
 	for f in sellers:
 		f.generate()
-		f.flush()

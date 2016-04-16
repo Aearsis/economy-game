@@ -19,9 +19,11 @@ class EntitiesBuffer:
 		self.mapping = {}
 
 	def create_entity(self, name, units="ks"):
+		print(name)
 		if name in self.mapping:
 			raise ValueError("already created")
-		e = Entity(name=name)
+		e = Entity(name=name, units=units)
+		e.price = all_pricelist[name]
 		e.save()
 		self.mapping[name] = e
 		return e
@@ -35,6 +37,9 @@ class EntitiesBuffer:
 		return self.mapping[name]
 
 	def set_price(self, name, price):
+		if name=="Kel":
+			for i in range(10):
+				print("je tu kel!!!")
 		self.mapping[name].price = price
 
 	def get_price(self, name):
@@ -44,7 +49,7 @@ class EntitiesBuffer:
 
 def generate_entities():
 	buf = EntitiesBuffer()
-	for n in all_goods + tools:
+	for n in all_goods:
 		buf.create_entity(n)
 
 	return buf
@@ -90,6 +95,9 @@ def generate_pricelist(buf):
 	for k,v in all_pricelist.items():
 		buf.set_price(k, v)
 
+	for e in all_goods:
+		print(buf.get_entity(e).price)
+
 	return buf
 
 from data.blackmarket_offers import generate_blackmarket
@@ -101,7 +109,8 @@ def generate_all_data():
 	buf = generate_recipes(buf)
 	buf = generate_pricelist(buf)
 
-	for x in buf.mapping:
+	buf.get_entity("Kel").price
+	for x in all_goods:
 		try:
 			buf.get_entity(x).price
 		except AttributeError:

@@ -16,12 +16,11 @@ minable_pricelist = [ (l1,L1) for l1 in minable_1 ] + [ (l2,L2) for l2 in minabl
 
 market_pricelist = []
 a = L1
-b = 30*L2
-gap = (b-a)//len(markatable)
-for x,e in zip(range(a,b,gap),markatable):
+max_price = 30*L2
+gap = (max_price-a)//len(markatable)
+for e,x in zip(markatable,range(a,max_price,gap)):
 	market_pricelist.append((e,x))
 
-max_price = market_pricelist[-1][1]
 
 tools_pricelist = [ (t,int(max_price*randfloat(5,20))) for t in tools ]
 
