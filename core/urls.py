@@ -28,5 +28,6 @@ urlpatterns = [
     url(r'^control/start', core.views.control_start, name = 'control/start'),
     url(r'^control/', core.views.control, name = 'control'),
     url(r'^wait/', core.views.wait_to_start, name = 'wait'),
+    url(r'^entity_detail/(\d+)', core.views.entity_detail, name = 'entity_detail'),
     url(r'^$', core.views.router, name = 'router'),
 ]

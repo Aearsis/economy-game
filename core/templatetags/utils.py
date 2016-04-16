@@ -1,14 +1,11 @@
-from time import timezone
-
-import builtins
-from django import template
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.safestring import mark_safe
 
 from auctions.models import WhiteAuction
 from core.models import *
-
+from ekonomicka.utils import *
 register = template.Library()
+
 
 def gametime_tag(delta, format, text):
     secs = (Game.to_date(delta) - timezone.now()).total_seconds()
@@ -29,11 +26,6 @@ def gametime(delta, format_string="%(natural)s;%(natural)s;"):
 @register.filter(name='abs')
 def absolute(val):
     return abs(val)
-
-
-@register.filter
-def entity_icon(entity):
-    return mark_safe("<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name))
 
 
 @register.filter
@@ -85,3 +77,21 @@ def auction_status(auction, team):
             return "V této aukci jste byli přehozeni."
 
     return "Této aukce se neúčastníte."
+
+
+@register.filter
+def entity_link_href(entity: Entity, inside):
+    return '<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), inside)
+
+
+@register.filter
+def entity_link(entity):
+    return mark_safe(entity_link_href(entity, entity.name))
+
+
+@register.filter
+def entity_icon(entity):
+    return mark_safe(entity_link_href(entity, "<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name)))
+
+
+

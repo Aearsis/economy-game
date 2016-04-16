@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load utils %}
+{% block title %}Předmět {{ entity.name }}{% endblock %}
+{% block content %}
+
+<h2>{{ entity.name }}{{ entity|entity_icon }}</h2>
+
+{% if licences|length > 0 %}
+<p>
+    Potřebné licence:
+    <ul>
+    {% for licence in licences %}
+        <li>{{ licence|entity_link }}</li>
+    {% endfor %}
+    </ul>
+</p>
+{% endif %}
+
+<p>
+{% if balances|length > 0 %}
+Je vlastněn týmy:
+    <ul>
+    {% for balance in balances %}
+       <li>{{ balance.team.name }} ({{ balance.amount }} {{ balance.entity.units }})</li>
+    {% endfor %}
+    </ul>
+{% else %}
+Tento předmět žádný tým nevlastní.
+{% endif %}
+</p>
+
+<p>
+{% if auctions|length > 0 %}
+Předmětu se týkají tyto aukce:
+    <ul>
+    {% for auction in auctions %}
+    <li><a href="{% url 'detail' auction.id %}">{{ auction.concrete_auction.description }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+Předmět není v žádných aukcích.
+{% endif %}
+</p>
+
+
+{% endblock %}

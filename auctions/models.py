@@ -17,6 +17,13 @@ class Auction(models.Model):
     commited = models.BooleanField(default=False)
     buyer = models.ForeignKey(Team, null=True, blank=True)
 
+    @property
+    def concrete_auction(self):
+        if hasattr(self, 'whiteauction'):
+            return self.whiteauction
+        else:
+            return self.blackauction
+
     def is_active(self):
         return Game.time_passed(self.begin) and (self.end is None or not Game.time_passed(self.end))
 
@@ -93,7 +100,7 @@ class Auction(models.Model):
 
                 highest_bid.block(t)
         except InvalidTransaction as e:
-            raise AuctionException("Nelze přihodit: "+str(e))
+            raise AuctionException("Nelze přihodit: " + str(e))
 
     def _commit_seller(self, t: Transaction, var_amount):
         """
@@ -237,6 +244,9 @@ class WhiteAuction(Auction):
         else:
             Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
 
+    def add_item(self, entity: Entity, amount, *args, **kwargs):
+        self.auctioneditem_set.create(entity, amount, *args, **kwargs)
+
     class Meta:
         verbose_name_plural = "Auctions"
 
@@ -248,6 +258,10 @@ class BlackAuction(Auction):
     def __str__(self):
         return "Černý trh: %s" % self.status_text
 
+    @property
+    def description(self):
+        return "Černá aukce prodejce %s" % self.seller_name
+
     def is_white(self):
         return False
 
@@ -256,8 +270,9 @@ class BlackAuction(Auction):
 
     def commit(self):
         super().commit()
-# TODO: DO: co tohle má dělat? házelo to chybu
-        #Status.add(self.status_text % self)
+
+    # TODO: DO: co tohle má dělat? házelo to chybu
+    # Status.add(self.status_text % self)
 
     @transaction.atomic
     def place_bid(self, team, amount):

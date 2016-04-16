@@ -1,4 +1,4 @@
-from time import timezone
+from django.utils import timezone
 
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login

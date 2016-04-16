@@ -12,7 +12,7 @@
         {% for balance in user.player.team.inventory %}
         {% if not balance.all_zero %}
             <tr class="{{ balance.entity.css_class }}">
-                <th>{{ balance.entity.name }}</th>
+                <th>{{ balance.entity|entity_link}}</th>
                 <td>{{ balance.amount|quantity:balance.entity }}</td>
                 <td>{{ balance.blocked|quantity:balance.entity }}</td>
                 <th>{{ balance.total|quantity:balance.entity }}</th>
