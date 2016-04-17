@@ -1,0 +1,39 @@
+{% load utils static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print lístečků</title>
+    <style>
+        .token {
+            display: inline-block;
+            margin: 0;
+            padding: 7px 0;
+            box-sizing: border-box;
+            border-top: 1px dotted black;
+            border-left: 1px dotted black;
+            font: 20px "Source Code Pro";
+            width: 85px;
+            height: 96px;
+        }
+
+        .token span {
+            display: block;
+            text-align: center;
+        }
+
+        .token i {
+            display: block;
+            margin: 5px auto;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static "css/main.css" %}">
+    <link rel="stylesheet" href="{% static "css/sprites.css" %}">
+</head>
+<body>
+{% for t in tokens %}<div class="token">
+        {{ t.entity|entity_icon_nolink }}
+        <span>{{ t.code }}</span>
+    </div>{% endfor %}
+</body>
+</html>

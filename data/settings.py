@@ -1,11 +1,14 @@
 from collections import namedtuple
 
 r = namedtuple("recipe_tuple", "consumes needs creates creates_num")
+
+
 class Recipe_tuple(r):
-	def __new__(self,consumes,needs,creates,creates_num=None):
-		if creates_num is None:
-			creates_num = tuple([1]*len(creates))
-		return super().__new__(self,consumes,needs,creates,creates_num)
+    def __new__(self, consumes, needs, creates, creates_num=None):
+        if creates_num is None:
+            creates_num = tuple([1] * len(creates))
+        return super().__new__(self, consumes, needs, creates, creates_num)
+
 
 # rozdělení minable surovin podle obtížnosti (podle toho, jak daleko budou
 # umístěny)
@@ -29,7 +32,7 @@ Dobrej pocit""".split("\n")
 minable = minable_1 + minable_2 + minable_3
 
 # seřazené podle toho, jak ty suroviny budou na černém trhu drahé
-markatable = """Sušené maso 
+markatable = """Sušené maso
 Vosk
 Mastek
 Žula
@@ -73,14 +76,13 @@ Ebenová polínka
 Smrková polínka
 Špagát""".split("\n")
 
-
 # licence k receptům
 tools = """Pazourková sekera
 Pazourkové nůžky
 Pazourkové dláto
 Pazourkové kladivo
 Pazourková pila
-Stříhačské oprávnění
+Střihačské oprávnění
 Tesařský průkaz
 Nástrojářský průkaz""".split("\n")
 
@@ -99,100 +101,101 @@ Pazourek
 Křemen
 Leštěné sluneční kamínky""".split("\n")
 
-def check_strategical():
-	for e in strategical:
-		assert e in all_goods, e+" is a strategical entity, but it must be mentioned first above"
 
+def check_strategical():
+    for e in strategical:
+        assert e in all_goods, e + " is a strategical entity, but it must be mentioned first above"
 
 
 # list of pairs (license, licenced entity)
 # both must be mentioned among all_goods before
 licences = [
-	("Nástrojářský průkaz", i) for i in """Pazourkové dláto
+               ("Nástrojářský průkaz", i) for i in """Pazourkové dláto
 Pazourkové kladivo
 Pazourková pila
 Tesařský průkaz""".split("\n")
-	] + [
-#	("Střihačské oprávnění", "Pazourkové nůžky")
-	]
+               ] + [
+               ("Střihačské oprávnění", "Pazourkové nůžky")
+           ]
+
 
 def check_licences():
-	for a,b in licences:
-		assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
-		assert b in all_goods, "%s unknown although it's a licenced entity. It must be mentioned earlier." % b
+    for a, b in licences:
+        assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
+        assert b in all_goods, "%s unknown although it's a licenced entity. It must be mentioned earlier." % b
 
 
 # TODO: it doesn't allow numbers of consume or create now
 recipes = [
-#[
-#	Recipe_tuple(
-#		needs=("Pazourková pila","Tesařský průkaz"),
-#		consumes=(tree,),
-#		creates=(tree+"ové prkno",)
-#	) for tree in ["Cedr","Smrk","Eben"]
-# ] + [
+              # [
+              #	Recipe_tuple(
+              #		needs=("Pazourková pila","Tesařský průkaz"),
+              #		consumes=(tree,),
+              #		creates=(tree+"ové prkno",)
+              #	) for tree in ["Cedr","Smrk","Eben"]
+              # ] + [
 
-#
-#	Recipe_tuple(
-#		needs=("Pazourková sekerka",),
-#		consumes=(tree,),
-#		creates=(tree+"ové polínko",)
-#	) for tree in ["Cedr","Smrk","Eben"]
-#	] + [
-#	Recipe_tuple(
-#		needs=(),
-#		consumes=("Med","Čistá voda","Kamení"),
-#		creates=("Lepící kámen",),
-#		)
-#	] + [
-	Recipe_tuple(
-		needs=("Pazourkové nůžky",),
-		consumes=(kuze,),
-		creates=(provazek,)
-	) for kuze in ["Tygří kožešina","Mamutí kožešina","Králičí kožešina"] \
-	for provazek in ["Kožená šňůrka","Špagát"]
-	] + [
+              #
+              #	Recipe_tuple(
+              #		needs=("Pazourková sekerka",),
+              #		consumes=(tree,),
+              #		creates=(tree+"ové polínko",)
+              #	) for tree in ["Cedr","Smrk","Eben"]
+              #	] + [
+              #	Recipe_tuple(
+              #		needs=(),
+              #		consumes=("Med","Čistá voda","Kamení"),
+              #		creates=("Lepící kámen",),
+              #		)
+              #	] + [
+              Recipe_tuple(
+                  needs=("Pazourkové nůžky",),
+                  consumes=(kuze,),
+                  creates=(provazek,)
+              ) for kuze in ["Tygří kožešina", "Mamutí kožešina", "Králičí kožešina"] \
+              for provazek in ["Kožená šňůrka", "Špagát"]
+              ] + [
 
-	Recipe_tuple(
-		needs=("Pazourkové nůžky",),
-		consumes=("Mamutí kožešina",),
-		creates=(provazek,),
-		creates_num=(100,)
-	) for provazek in ["Kožená šňůrka","Špagát"]
+              Recipe_tuple(
+                  needs=("Pazourkové nůžky",),
+                  consumes=("Mamutí kožešina",),
+                  creates=(provazek,),
+                  creates_num=(100,)
+              ) for provazek in ["Kožená šňůrka", "Špagát"]
 
-	] + [
+              ] + [
 
+              Recipe_tuple(
+                  needs=("Pazourkové dláto", "Tesařský průkaz"),
+                  consumes=("Vosk",),
+                  creates=("RandomSort",)
+              ),
 
-	Recipe_tuple(
-		needs=("Pazourkové dláto","Tesařský průkaz"),
-		consumes=("Vosk",),
-		creates=("RandomSort",)
-		),
+              Recipe_tuple(
+                  needs=("Pazourkové dláto", "Tesařský průkaz"),
+                  consumes=("Mastek",),
+                  creates=("InsertSort",)
+              ),
 
-	Recipe_tuple(
-		needs=("Pazourkové dláto", "Tesařský průkaz"),
-		consumes=("Mastek",),
-		creates=("InsertSort",)
-	),
+              Recipe_tuple(
+                  needs=("Pazourkové dláto", "Tesařský průkaz"),
+                  consumes=("Mýdlo", "Čistá voda"),
+                  creates=("BubbleSort",)
+              ),
 
-	Recipe_tuple(
-		needs=("Pazourkové dláto", "Tesařský průkaz"),
-		consumes=("Mýdlo","Čistá voda"),
-		creates=("BubbleSort",)
-	),
+              Recipe_tuple(
+                  needs=("Pazourkové dláto", "Tesařský průkaz"),
+                  consumes=("Křemen",),
+                  creates=("QuickSort",)
+              ),
 
-	Recipe_tuple(
-		needs=("Pazourkové dláto","Tesařský průkaz"),
-		consumes=("Křemen",),
-		creates=("QuickSort",)
-		),
+              Recipe_tuple(
+                  needs=("Pazourkové kladivo", "Pazourkové dláto"),
+                  consumes=("QuickSort", "Křemen", "Žula", "Kamenec", "Dobrej pocit"),
+                  creates=("Robot",)
+              ),
+          ]
 
-	Recipe_tuple(
-		needs=("Pazourkové kladivo", "Pazourkové dláto"),
-		consumes=("QuickSort", "Křemen", "Žula", "Kamenec","Dobrej pocit"),
-		creates=("Robot",)
-		),
-]
 
 # check recipes: všechny ingredience a výrobky musí být zmíněné dříve mezi
 # minable, markatable etc., aby se nestalo, že nějaká věc je nedostupná!!!
@@ -200,30 +203,30 @@ recipes = [
 # TODO: asi by bylo fajn stanovit u receptů taky množství, ale do toho se mi
 # moc nechce. Všechno bude jenom jednou (nebo náhodné číslo z 1-3)-krát.
 
-#print(recipes)
+# print(recipes)
 
 def check_recipes():
-	for r in recipes:
-		assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined "+str(r)
-		for c in r.consumes:
-			assert c in all_goods, str(c)+" unknown"
-		for c in r.creates:
-			assert c in all_goods, str(c)+" unknown "+str(r)
+    for r in recipes:
+        assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined " + str(r)
+        for c in r.consumes:
+            assert c in all_goods, str(c) + " unknown"
+        for c in r.creates:
+            assert c in all_goods, str(c) + " unknown " + str(r)
+
 
 def check():
-	check_strategical()
-	check_licences()
-	check_recipes()
-	print("check OK")
+    check_strategical()
+    check_licences()
+    check_recipes()
+    print("check OK")
 
 
 # comment to disable it
 check()
 
-			 
 if __name__ == "__main__":
-	print("všech surovin",len(all_goods))
-	print("minable",len(minable))
-	print("markatable",len(markatable))
-	print("strategical",len(strategical))
-	print("makable",len(makable))
+    print("všech surovin", len(all_goods))
+    print("minable", len(minable))
+    print("markatable", len(markatable))
+    print("strategical", len(strategical))
+    print("makable", len(makable))

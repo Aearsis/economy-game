@@ -4,6 +4,7 @@ from django.db import transaction
 
 from core.models import Entity
 from recipes.models import Recipe, Ingredient
+from tokens.models import Token
 
 from data.settings import *
 from data.blackmarket_pricelist import *
@@ -99,6 +100,23 @@ def generate_pricelist(buf):
 		buf.set_price(k, v)
 	return buf
 
+def generate_tokens(buf):
+	TOKEN_COUNT=1024
+
+	def f(x):
+		import math
+		return 1/math.log(x)
+
+	Token.objects.all().delete()
+	price_sum = sum(f(buf.get_price(n)) for n in minable)
+	for n in minable:
+		e = buf.get_entity(n)
+		count = int(TOKEN_COUNT / price_sum * f(buf.get_price(n)))
+		for _ in range(count):
+			Token.generate_one(e)
+
+	return buf
+
 from data.blackmarket_offers import generate_blackmarket
 
 @transaction.atomic
@@ -119,7 +137,10 @@ def generate_all_data():
 	print("recipes done")
 	buf = generate_pricelist(buf)
 	print("pricelist done")
+	buf = generate_tokens(buf)
+	print("tokens done")
 
+	return
 	for x in all_goods:
 		try:
 			buf.get_entity(x).price
@@ -128,5 +149,5 @@ def generate_all_data():
 			raise
 
 	
-	generate_blackmarket(buf)
+	#generate_blackmarket(buf)
 	print("blackmarket done")

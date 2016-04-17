@@ -85,13 +85,19 @@ def entity_link_href(entity: Entity, inside):
 
 
 @register.filter
-def entity_link(entity):
-    return mark_safe(entity_link_href(entity, entity.name))
+def entity_link(entity, content=None):
+    if content is None:
+        content = entity.name
+    return mark_safe(entity_link_href(entity, content))
+
+
+@register.filter
+def entity_icon_nolink(entity):
+    return mark_safe("<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name))
 
 
 @register.filter
 def entity_icon(entity):
-    return mark_safe(entity_link_href(entity, "<i class=\"eicon eicon-%i\" title=\"%s\"></i>" % (entity.id, entity.name)))
-
+    return entity_link(entity, entity_icon_nolink(entity))
 
 
