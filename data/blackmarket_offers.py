@@ -14,18 +14,6 @@ def randfloat(a, b):
     return a + random.random() * (b - a)
 
 
-def rand_subset(superset, max_size, min_size=0):
-    superset = list(superset)
-    return set(superset)
-
-    size = randint(min_size, max_size)
-
-    if size >= len(superset):
-        return set(superset)
-
-    shuffle(superset)
-    return set(superset[:size])
-
 
 def ent_filter(**kwargs):
     return Entity.objects.filter(**kwargs).all()
@@ -52,14 +40,27 @@ class SellerBase:
     @staticmethod
     def get_items_to_price(price, items):
         """
-        !!!TODO!!! Returns list of pairs (entity, amount) such that amounts are positive,
+        Returns list of pairs (entity, amount) such that amounts are positive,
         and sum(entity.price * amount) is approximately price (but not higher)
         """
-        if not items:
-            return []
-        items = list(items)
-        chosen = items[0]
-        return [(chosen, int(price / chosen.price))]
+        distribution = {e: price / len(items) for e in items}
+        print(distribution)
+        for i in range(10):
+            for e, v in distribution.items():
+                distribution[e] = distribution[e] // e.price * e.price
+
+            remainder = price - sum(distribution.values())
+            if remainder == 0:
+                break
+
+            for e, v in distribution.items():
+                if remainder >= e.price:
+                    newd = (distribution[e] + remainder) // e.price * e.price
+                    remainder -= newd - distribution[e]
+                    distribution[e] = newd
+
+            print(distribution)
+        return {e: v/e.price for e, v in distribution.items()}
 
     def generate_one(self, time):
         raise NotImplemented()
@@ -117,33 +118,43 @@ class RandomSellerBase(SellerBase):
     def generate_one(self, time):
         sell = set(self.selling_entities(time))
         buy = set(self.buying_entities(time))
+        buy_max = min(self.max_buy_count(time), len(buy))
+        sell_max = min(self.max_sell_count(time), len(sell))
+        buy_price = randint(0, self.max_buy_price(time))
+        sell_price = randint(0, self.max_sell_price(time))
+
+        if buy_max + sell_max == 0:
+            raise Exception("Nothing to choose from.")
+
+        sell_count, buy_count = randint(0, sell_max), randint(0, buy_max)
+        if buy_count + sell_count == 0:
+            buy_count = min(1, buy_max)
+            sell_count = min(1, sell_max)
 
         auction = BlackAuction.objects.create(var_min=0)
 
-        sell_set = rand_subset(sell, self.max_sell_count(time))
-        sell_amounts = self.get_items_to_price(self.max_sell_price(time), sell_set)
-        for x, c in sell_amounts:
-            if c == 0:
-                sell_set.remove(x)
-
-        buy_set = rand_subset(sell - sell_set, self.max_buy_count(time), min_size=0 if sell_set else 1)
-        buy_amounts = self.get_items_to_price(self.max_buy_price(time), buy_set)
-        for x, c in buy_amounts:
-            if c == 0:
-                buy_set.remove(x)
-
         price = 0
-        for ent, am in buy_amounts:
-            if am > 0:
-                self.add_auction_item(auction, ent, -am)
-                price += am * ent.price
+        sell_set = sample(sell, sell_count)
+        sell_amounts = self.get_items_to_price(sell_price, sell_set)
+        for x, c in sell_amounts.items():
+            if c > 0:
+                self.add_auction_item(auction, x, c)
+                price += c * x.price
+                sell.remove(x)
+                if x in buy:
+                    buy.remove(x)
 
-        for ent, am in sell_amounts:
-            if am > 0:
-                self.add_auction_item(auction, ent, am)
-                price += am * ent.price
+        buy_set = sample(buy, buy_count)
+        buy_amounts = self.get_items_to_price(buy_price, buy_set)
+        for x, c in buy_amounts.items():
+            if c > 0:
+                self.add_auction_item(auction, x, -c)
+                price += c * x.price
+                buy.remove(x)
+                if x in sell:
+                    sell.remove(x)
 
-        auction.var_entity = choice(list(sell_set if price > 0 else buy_set))
+        auction.var_entity = choice(list(sell if price > 0 else buy))
         auction.var_min = self.estimate_price(auction, self.income_coef(time))
         auction.save()
 
@@ -179,14 +190,14 @@ class RandomStuffRiscantSeller(RandomSellerBase):
             0: 0,
             1/6: 60,
             1/3: 600,
-            2/3: 2**32,
+            2/3: 6000,
         }).value_in_time
 
         self.max_sell_setting = EvolvingSetting({
             0: 60,
             1/6: 120,
             1/3: 600,
-            1/2: 2**32,
+            1/2: 6000,
         })
 
         self.max_sell_price = self.max_sell_setting.value_in_time
@@ -333,4 +344,4 @@ def generate_blackmarket(force=False):
     for f in sellers:
         f.generate()
 
- 
+    return "[ OK ] BlackAuction"

@@ -4,6 +4,6 @@ from . import views
 
 app_name = "recipes"
 urlpatterns = [
-    url(r'^$', 'recipes.views.index', name='index'),
-    url(r'^detail/([0-9]+)', 'recipes.views.detail', name='detail')
+    url(r'^$', views.index, name='index'),
+    url(r'^detail/([0-9]+)', views.detail, name='detail')
 ]

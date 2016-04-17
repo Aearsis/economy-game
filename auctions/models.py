@@ -258,11 +258,11 @@ class BlackAuction(Auction):
     status_text = models.TextField()
 
     def __str__(self):
-        return "Černý trh: %s" % self.status_text
+        return "Nabídka od prodejce %s" % self.seller_name
 
     @property
     def description(self):
-        return "Černá aukce prodejce %s" % self.seller_name
+        return "%s nabízí následující obchod." % self.seller_name
 
     def is_white(self):
         return False
