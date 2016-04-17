@@ -61,7 +61,9 @@ class SellerBase:
 
     @staticmethod
     def estimate_price(auction, coef):
-        """ Returns expected price of var_entity in comparison to items sold and bought. """
+        """ Returns expected price of var_entity in comparison to items sold and bought.
+        coef: coefficient of auction initial price with respect to the "real" value of buying/selling stuff
+        """
         diff = sum(item.entity.price * item.amount for item in auction.auctioneditem_set.all())
         diff /= auction.var_entity.price
         """
@@ -212,20 +214,20 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         }).value_in_time
 
     def generate(self):
-        # for x in range(0,100,20):
-        #	self.generate_one(x/100)
+        for x in range(0,100,20):
+            self.generate_one(x/100)
 
-        # return
+        return
         # TODO
 
-        seconds = 0
-        perc_time = 0
-        while perc_time < 1:
-            span = self.spans.value_in_time(perc_time)
-            seconds += span
-            perc_time = seconds / self.game_len.seconds
+        #seconds = 0
+        #perc_time = 0
+        #while perc_time < 1:
+        #    span = self.spans.value_in_time(perc_time)
+        #    seconds += span
+        #    perc_time = seconds / self.game_len.seconds
 
-            self.generate_one(perc_time)
+        #    self.generate_one(perc_time)
 
 
 class TrivialSeller(SellerBase):
@@ -255,12 +257,16 @@ class TrivialSeller(SellerBase):
         return [ent("Křemen"), ent("Žula")]
 
 
-# static
 class StaticAuction(SellerBase):
     def __init__(self, coef, *args, **kwargs):
+        '''coef: coef from estimate_price'''
         self.estimate = not 'var_min' in kwargs.keys()
         if self.estimate:
             kwargs['var_min'] = 0
+        if 'begin' in kwargs:
+            if not isinstance(kwargs['begin'], datetime.timedelta):
+                assert 0<= kwargs['begin'] <=1
+                kwargs['begin'] = datetime.timedelta(seconds=self.game_len*kwargs['begin'])
         self.coef = coef
         self.b = BlackAuction.objects.create(*args, **kwargs)
 
@@ -281,15 +287,15 @@ def generate_blackmarket(force=False):
             return "[SKIP] BlackAuction"
 
     sellers = [
-        #		TrivialSeller(buf),
+        #TrivialSeller(buf),
         RandomStuffRiscantSeller(),
     ]
 
     for f in sellers:
         f.generate()
 
-# with StaticAuction(1,
-#			begin=datetime.timedelta(minutes=10),
-#			var_entity=e('Oheň')) as b:
-#		b.add_item(e('Žula'), 1)
-#		b.add_item(e('Žula'), 1)
+    with StaticAuction(coef=1,
+			begin=datetime.timedelta(minutes=10),
+			var_entity=e('Oheň')) as b:
+        b.add_item(e('Žula'), 1)
+        b.add_item(e('Křemen'), 1)
