@@ -84,12 +84,12 @@ def generate_tokens(force=False):
         return 1/math.log(x)
 
     # TODO: this "minable" list doesn't exist, fix it
-    price_sum = sum(f(ent(n).price) for n in minable)
-    for n in minable:
-        e = ent(n)
-        count = int(TOKEN_COUNT / price_sum * f(e.price))
-        for _ in range(count):
-            Token.generate_one(e)
+    price_sum = sum(f(e.price * e.token_amount) for e in all_goods if e.token_amount > 0)
+    for einfo in all_goods:
+        if einfo.token_amount > 0:
+            count = int(TOKEN_COUNT / price_sum * f(einfo.price * einfo.token_amount))
+            for _ in range(count):
+                Token.generate_one(e(e.name), e.token_amount)
 
     return "[ OK ] Token"
 
@@ -100,7 +100,7 @@ def generate_all_data(force = False):
     report = [
         generate_entities(force),
         generate_recipes(force),
-        #generate_tokens(force),
+        generate_tokens(force),
         generate_blackmarket(force),
     ]
 

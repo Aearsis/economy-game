@@ -21,9 +21,7 @@ class Token(models.Model):
     used_by = models.ForeignKey(Team, null=True, blank=True, default=None)
     used_time = timedelta.TimedeltaField(null=True, blank=True, default=None)
 
-    @property
-    def value(self):
-        return 1
+    value = models.PositiveIntegerField(default=1)
 
     @transaction.atomic
     def _use_commit(self, team):
@@ -54,8 +52,8 @@ class Token(models.Model):
         return "".join(random.choice(Token.VOWELS if i % 2 == 1 else Token.CONSONANTS) for i in range(Token.LENGTH))
 
     @staticmethod
-    def generate_one(entity: Entity):
-        t = Token(entity=entity, code=Token.randomcode())
+    def generate_one(entity: Entity, amount=1):
+        t = Token(entity=entity, code=Token.randomcode(), amount=amount)
         t.save()
         return t
 

@@ -10,7 +10,7 @@ class Auction(models.Model):
     # buyer gives seller the highest possible amount of var_entity.
     # positive: buyer --> seller
     # negative: buyer <-- seller
-    var_entity = models.ForeignKey(Entity)
+    var_entity = models.ForeignKey(Entity, null=True)
     var_min = models.IntegerField()
     var_step = models.PositiveIntegerField(default=1)
 

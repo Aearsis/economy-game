@@ -23,8 +23,8 @@ def rand_subset(superset, max_size, min_size=0):
     shuffle(superset)
     return set(superset[:size])
 
-def ents():
-    return Entity.objects.all()
+def ent_filter(**kwargs):
+    return Entity.objects.filter(**kwargs).all()
 
 
 class EvolvingSetting:
@@ -116,29 +116,32 @@ class RandomSellerBase(SellerBase):
         sell = set(self.selling_entities(time))
         buy = set(self.buying_entities(time))
 
-        var_ent = choice(list(sell | buy)) # Oh, set does not support indexing...
-        if var_ent in sell:
-            sell.remove(var_ent)
-        if var_ent in buy:
-            buy.remove(var_ent)
-
-        auction = BlackAuction.objects.create(var_entity=var_ent, var_min=0)
+        auction = BlackAuction.objects.create(var_min=0)
 
         sell_set = rand_subset(sell, self.max_sell_count(time))
         sell_amounts = self.get_items_to_price(self.max_sell_price(time), sell_set)
         for x, c in sell_amounts:
             if c == 0:
                 sell_set.remove(x)
+
         buy_set = rand_subset(sell - sell_set, self.max_buy_count(time), min_size=0 if sell_set else 1)
         buy_amounts = self.get_items_to_price(self.max_buy_price(time), buy_set)
+        for x, c in buy_amounts:
+            if c == 0:
+                buy_set.remove(x)
 
+        price = 0
         for ent, am in buy_amounts:
             if am > 0:
                 self.add_auction_item(auction, ent, -am)
+                price += am * ent.price
+
         for ent, am in sell_amounts:
             if am > 0:
                 self.add_auction_item(auction, ent, am)
+                price += am * ent.price
 
+        auction.var_entity = choice(list(sell_set if price > 0 else buy_set))
         auction.var_min = self.estimate_price(auction, self.income_coef(time))
         auction.save()
 
@@ -149,7 +152,7 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         self.name = "Dr. Kámen"
 
         # risk
-        self.risks = EvolvingSetting({0: 0})
+        self.risks = EvolvingSetting({0: 0, 0.15: 0.1, 0.5: 0.9, 0.52: 0.15})
 
         # average time between auctions in seconds
         self.spans = EvolvingSetting({0: 12})
@@ -158,66 +161,56 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         # 1. hodinu jenom minable
         # 2. hodinu markatable
         # 3. hodinu: všechno
-        self.buying_stuff = EvolvingSetting({
-            0: list(ents().filter(lambda x: x.is_minable and x.price < 60)),
-            
-            1/3: list(ents().filter(lambda e: e.is_minable or e.is_markatable)),
-            
-            0.05: list(ents().filter(lambda x: x.is_minable)),
-            0.1: list(ents().filter(lambda x: x.is_minable)),
-            0.3: list(ents()),
-        })
-
-        self.buying_entities = lambda time: map(ent, self.buying_stuff.value_in_time(time))
+        self.buying_entities = EvolvingSetting({
+            0: ent_filter(is_minable=True),
+            1 / 3: Entity.objects.exclude(is_minable=False, is_markatable=False).all(),
+            2 / 3: Entity.objects.all(),
+        }).value_in_time
 
         # věci, které se v tu dobu budou prodávat
-        # 1. hodinu listy 
-        self.selling_stuff = EvolvingSetting({
-            0: list(ents()).filter(lambda e: e.is_markatable)),
-            0.1: list(ents().filter(lambda e: e.is_markatable)),
-            # k nákupu jsou i aukce
-            0.9: all_goods
-        })
+        # 1. hodinu listy
+        self.selling_entities = EvolvingSetting({
+            0: ent_filter(is_markatable=True),
+            1/3: Entity.objects.exclude(is_minable=False, is_markatable=False).all(),
+        }).value_in_time
 
-        self.selling_entities = lambda time: map(ent, self.selling_stuff.value_in_time(time))
-
-        self.max_buy_setting = EvolvingSetting({
-            0: 100,
-            0.1: 200,
-            0.12: 10000,
-            0.22: 10 ** 8
-        })
-
-        self.max_buy_price = self.max_buy_setting.value_in_time
+        self.max_buy_price = EvolvingSetting({
+            0: 0,
+            1/6: 60,
+            1/3: 600,
+            2/3: 2**32,
+        }).value_in_time
 
         self.max_sell_setting = EvolvingSetting({
-            0: 100,
-            0.1: 200,
-            0.12: 10000,
-            0.22: 10 ** 8
+            0: 60,
+            1/6: 120,
+            1/3: 600,
+            1/2: 2**32,
         })
 
         self.max_sell_price = self.max_sell_setting.value_in_time
 
-        self.income_coef_setting = EvolvingSetting({
-            0: 1
-        })
-
-        self.income_coef = self.income_coef_setting.value_in_time
+        self.income_coef = EvolvingSetting({
+            0: 30,
+            1/12: 20,
+            1/6: 10,
+            1/3: 5,
+            1/2: 2
+        }).value_in_time
 
         # maximální počet druhů položek v aukci (když jich je moc, tak je to
         # nepřehledný)
         self.max_sell_count = EvolvingSetting({
-            0: 1,
-            0.3: 5,
-            # neomezený počet: tohle bude brutální!
-            0.6: len(all_goods)
+            0: 2,
+            1/3: 5,
+            5/6: 10
         }).value_in_time
 
         self.max_buy_count = EvolvingSetting({
-            0: 1,
-            0.3: 5,
-            0.6: len(all_goods)
+            0: 0,
+            1 / 6: 1,
+            1 / 3: 3,
+            2 / 3: 5,
         }).value_in_time
 
     def generate(self):
@@ -301,8 +294,11 @@ def generate_blackmarket(force=False):
     for f in sellers:
         f.generate()
 
+    def e(name):
+        return Entity.objects.get(name=name)
+
     with StaticAuction(coef=1,
-			begin=datetime.timedelta(minutes=10),
-			var_entity=e('Oheň')) as b:
+            begin=datetime.timedelta(minutes=10),
+            var_entity=e('Oheň')) as b:
         b.add_item(e('Žula'), 1)
         b.add_item(e('Křemen'), 1)
