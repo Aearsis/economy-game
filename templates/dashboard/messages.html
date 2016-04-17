@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load utils %}
+{% block content %}
+    <table class="table">
+        <tbody>
+        {% for status in statuses %}
+            <tr class="text-{{ status.type }}">
+                <td>{{ status.time|gametime }}</td>
+                <td>{{ status.message }}</td>
+            </tr>
+        {% empty %}
+            <tr class="text-info">
+                <td colspan="2">Prosím vyčkejte začátku hry.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
