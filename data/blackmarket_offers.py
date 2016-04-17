@@ -23,6 +23,9 @@ def rand_subset(superset, max_size, min_size=0):
     shuffle(superset)
     return set(superset[:size])
 
+def ents():
+    return Entity.objects.all()
+
 
 class EvolvingSetting:
     def __init__(self, setting):
@@ -146,28 +149,32 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         self.name = "Dr. Kámen"
 
         # risk
-        self.risks = EvolvingSetting({0: 0, 0.1: 0.1, 0.15: 0.15, 0.4: 0.2, 0.5: 0.01, 0.65: 0.25})
+        self.risks = EvolvingSetting({0: 0})
 
         # average time between auctions in seconds
-        self.spans = EvolvingSetting({0: 60, 0.1: 40, 0.2: 30, 0.25: 20})
-
-        # průměrný profit z výdělků
-        self.profits = EvolvingSetting({0: 2})
+        self.spans = EvolvingSetting({0: 12})
 
         # věci, za které bude černý trh nakupovat
+        # 1. hodinu jenom minable
+        # 2. hodinu markatable
+        # 3. hodinu: všechno
         self.buying_stuff = EvolvingSetting({
-            0: minable_1,
-            0.05: minable,
-            0.1: minable + markatable,
-            0.3: all_goods
+            0: list(ents().filter(lambda x: x.is_minable and x.price < 60)),
+            
+            1/3: list(ents().filter(lambda e: e.is_minable or e.is_markatable)),
+            
+            0.05: list(ents().filter(lambda x: x.is_minable)),
+            0.1: list(ents().filter(lambda x: x.is_minable)),
+            0.3: list(ents()),
         })
 
         self.buying_entities = lambda time: map(ent, self.buying_stuff.value_in_time(time))
 
         # věci, které se v tu dobu budou prodávat
+        # 1. hodinu listy 
         self.selling_stuff = EvolvingSetting({
-            0: list(set(minable + markatable)),
-            0.1: list(set(minable + markatable + strategical)),
+            0: list(ents()).filter(lambda e: e.is_markatable)),
+            0.1: list(ents().filter(lambda e: e.is_markatable)),
             # k nákupu jsou i aukce
             0.9: all_goods
         })

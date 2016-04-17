@@ -29,7 +29,7 @@ def generate_entities(force=False):
             name=einfo.name,
             price=einfo.price,
             is_strategic=einfo.strategic,
-            is_markatable=not einfo.sell,
+            is_markatable=einfo.sell,
             is_minable=einfo.token_amount > 0,
         )
 
@@ -83,6 +83,7 @@ def generate_tokens(force=False):
         import math
         return 1/math.log(x)
 
+    # TODO: this "minable" list doesn't exist, fix it
     price_sum = sum(f(ent(n).price) for n in minable)
     for n in minable:
         e = ent(n)
@@ -100,7 +101,7 @@ def generate_all_data(force = False):
         generate_entities(force),
         generate_recipes(force),
         #generate_tokens(force),
-        #generate_blackmarket(force),
+        generate_blackmarket(force),
     ]
 
     return report

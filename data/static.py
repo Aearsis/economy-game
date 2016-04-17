@@ -1,5 +1,6 @@
 class EntityTuple:
     def __init__(self, name, price, token_amount=0, sell=None, strategic=False):
+        '''sell: černé aukce to budou prodávat'''
         self.name = name
         self.price = price
         self.token_amount = token_amount
