@@ -89,7 +89,7 @@ def generate_tokens(force=False):
         if einfo.token_amount > 0:
             count = int(TOKEN_COUNT / price_sum * f(einfo.price * einfo.token_amount))
             for _ in range(count):
-                Token.generate_one(e(e.name), e.token_amount)
+                Token.generate_one(Entity.objects.get(name=einfo.name), einfo.token_amount)
 
     return "[ OK ] Token"
 

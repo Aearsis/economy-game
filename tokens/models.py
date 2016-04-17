@@ -53,7 +53,7 @@ class Token(models.Model):
 
     @staticmethod
     def generate_one(entity: Entity, amount=1):
-        t = Token(entity=entity, code=Token.randomcode(), amount=amount)
+        t = Token(entity=entity, code=Token.randomcode(), value=amount)
         t.save()
         return t
 
