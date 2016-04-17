@@ -30,5 +30,6 @@ urlpatterns = [
     url(r'^entity_detail/(\d+)', core.views.entity_detail, name = 'entity_detail'),
     url(r'^messages/', core.views.messages, name='messages'),
     url(r'^inventory/', core.views.inventory, name='inventory'),
+    url(r'^entities/', core.views.entity_list, name='entities'),
     url(r'^$', core.views.router, name = 'router'),
 ]

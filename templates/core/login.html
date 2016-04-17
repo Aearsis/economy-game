@@ -5,10 +5,6 @@
 
 <h3>Přihlášení</h3>
 
-{% if form.errors %}
-<div class="alert alert-warning">Uživatelské jméno nebo heslo je nesprávné.</div>
-{% endif %}
-
 {% if next %}
     {% if user.is_authenticated %}
     <div class="alert alert-danger">K této akci nemáš potřebné právo. Nechtěl jsi se přihlásit za někoho jiného?</div>

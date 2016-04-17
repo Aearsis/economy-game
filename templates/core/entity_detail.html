@@ -7,13 +7,25 @@
 
 {% if licences|length > 0 %}
 <p>
-    Potřebné licence:
+    Abyste mohli vlastnit tento předmět, musíte nejdříve mít:
     <ul>
     {% for licence in licences %}
         <li>{{ licence|entity_link }}</li>
     {% endfor %}
     </ul>
 </p>
+{% endif %}
+
+{% if perms.core.control_game  %}
+<div class="well">
+    {% if entity.is_makable %}Entita se dá vytvořit.{% endif %}
+    {% if entity.is_minable %}Entita se dá získat z lístečků.{% endif %}
+    {% if entity.is_markatable %}Entita se dá koupit na trhu.{% endif %}
+</div>
+{% endif %}
+
+{% if entity.is_strategic %}
+<p>Tento předmět je <strong>strategický</strong>.</p>
 {% endif %}
 
 <p>

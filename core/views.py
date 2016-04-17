@@ -11,12 +11,12 @@ from auctions.models import *
 @team_required
 def team(request):
     return render(request, "core/team.html", {
-        'team' : request.team,
+        'team': request.team,
     })
 
 
 @player_required
-def create_team(request, next = "/team"):
+def create_team(request, next="/team"):
     if request.team is not None:
         return redirect(next)
 
@@ -30,12 +30,12 @@ def create_team(request, next = "/team"):
     else:
         form = TeamForm()
 
-    return render(request, "core/create_team.html", { 'form': form })
+    return render(request, "core/create_team.html", {'form': form})
 
 
 def messages(request):
     data = Status.visible()
-    return render(request, 'dashboard/messages.html', { 'statuses': data[0], 'refreshed': data[1] })
+    return render(request, 'dashboard/messages.html', {'statuses': data[0], 'refreshed': data[1]})
 
 
 def inventory(request):
@@ -53,23 +53,25 @@ def inventory(request):
             table_filtered.append(row)
 
     return render(request, 'dashboard/inventory.html', {
-        'teams' : teams,
-        'table' : table_filtered,
-        'team' : request.team,
+        'teams': teams,
+        'table': table_filtered,
+        'team': request.team,
     })
 
 
 @permission_required("control_game")
 def control(request):
     return render(request, 'core/control.html', {
-        'game' : Game,
-        'balances' : Balance.objects.order_by('team', 'entity').all()
+        'game': Game,
+        'balances': Balance.objects.order_by('team', 'entity').all()
     })
+
 
 @permission_required("control_game")
 def control_start(request):
     Game.start_now()
     return redirect(reverse("control"))
+
 
 @team_required
 def wait_to_start(request):
@@ -83,7 +85,6 @@ def wait_to_start(request):
 
 
 def entity_detail(request, entity_id):
-
     entity = Entity.objects.get(id=entity_id)
     licences = entity.licences.all()
 
@@ -107,11 +108,12 @@ def entity_detail(request, entity_id):
 
     return render(request, "core/entity_detail.html", {
         'entity': entity,
-        'balances' : balances,
-        'licences' : licences,
-        'recipes' : recipes,
-        'auctions' : auctions,
+        'balances': balances,
+        'licences': licences,
+        'recipes': recipes,
+        'auctions': auctions,
     })
+
 
 def router(request):
     """
@@ -131,3 +133,9 @@ def router(request):
         return redirect(reverse("dashboard"))
 
     return redirect(reverse("team"))
+
+
+def entity_list(request):
+    return render(request, "core/entity_list.html", {
+        'entities': Entity.objects.order_by('name').all()
+    })
