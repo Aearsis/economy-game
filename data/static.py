@@ -84,11 +84,11 @@ licences = (
 
 
 class RecipeTuple:
-    def __init__(self, consumes={}, needs=(), creates={}, title=None, desc=None):
+    def __init__(self, consumes={}, needs=(), creates={}, name=None, desc=None):
         self.consumes = consumes
         self.needs = needs
         self.creates = creates
-        self.title = title
+        self.name = name
         self.desc = desc
 
 

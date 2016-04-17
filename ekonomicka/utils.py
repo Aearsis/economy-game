@@ -47,6 +47,8 @@ def game_running_required(view_func):
 
 
 def naturaljoin(items, sep=", ", last=" a ", empty=""):
+    if not isinstance(items, list):
+        items = list(items)
     if len(items) == 0:
         return empty
     if len(items) == 1:
