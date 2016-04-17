@@ -19,6 +19,7 @@
     <table class="table table-balance">
         <thead>
         <tr>
+            <th></td>
             <th></th>
             {% for team in teams %}
             <th>{{ team.name }}</th>
@@ -28,6 +29,7 @@
         <tbody>
             {% for row in table %}
             <tr class="{{ row.0.entity.css_class }}">
+                <td>{{ row.0.entity|entity_icon }}</td>
                 <th>{{ row.0.entity.name }}</th>
                 {% for balance in row %}
                 <td>{{ balance.total }}</td>

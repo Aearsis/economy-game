@@ -1,4 +1,5 @@
 {% load utils %}
+{% if balance|length > 0 %}
 <table class="table table-balance">
     <thead>
     <tr>
@@ -21,3 +22,6 @@
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<tr>Zatím u sebe nemáte žádné předměty. Kde se flákáte?!</tr>
+{% endif %}
