@@ -5,149 +5,110 @@ from django.db import transaction
 from core.models import Entity
 from recipes.models import Recipe, Ingredient
 from tokens.models import Token
+from ekonomicka.utils import naturaljoin
 
 from data.settings import *
 from data.blackmarket_pricelist import *
 
 import random
 
-class EntitiesBuffer:
-	
-	def __init__(self):
-		Entity.objects.all().delete()
-		self.mapping = {}
+"""
+Global, useful shortcut.
+"""
+def ent(name):
+	return Entity.objects.get(name=name)
 
-	def create_entity(self, name, **kwargs):
-		if name in self.mapping:
-			raise ValueError("already created")
-		e = Entity(name=name, **kwargs)
-		e.price = all_pricelist[name]
+
+def generate_entities(force=False):
+	if Entity.objects.count() > 0:
+		if force:
+			Entity.objects.all().delete()
+		else:
+			return "[SKIP] Entity"
+
+	for name, price in all_pricelist.items():
+		Entity.objects.create(name=name, price=price)
+
+	def set_prop(name, prop):
+		e = ent(name=name)
+		setattr(e, prop, True)
 		e.save()
-		self.mapping[name] = e
-		return e
 
-	def get_or_create_ent(self, name, units="ks"):
-		if not name in self.mapping:
-			return self.create_entity(name, units)
-		return self.get_entity(name)
-
-	def get_entity(self, name):
-		return self.mapping[name]
-
-	def set_price(self, name, price):
-		self.mapping[name].price = price
-
-	def get_price(self, name):
-		return self.mapping[name].price
-
-
-def generate_entities(buf):
 	for n in markatable:
-		buf.create_entity(n, is_markatable=True)
+		set_prop(n, 'is_markatable')
 	for n in minable:
-		buf.create_entity(n, is_minable=True)
+		set_prop(n, 'is_minable')
 	for n in makable:
-		buf.create_entity(n, is_makable=True)
-	for n in tools:
-		buf.create_enity(n)
+		set_prop(n, 'is_makable')
 	for n in strategical:
-		e = buf.get_entity(n)
-		e.is_strategic = True
-		e.save()
-	return buf
+		set_prop(n, 'is_strategical')
 
-# TODO
-def load_entities(buf):
-	buf.load_entities(all_goods)
-	return buf
-
-
-def generate_licences(buf):
-	for k,v in licences:
-		l = buf.get_or_create_ent(k)
-		f = buf.get_or_create_ent(v)
-		f.licences.add(l)
-		l.licenced_entities.add(f)
+	for k, v in licences:
+		f = ent(v)
+		f.licences.add(ent(k))
 		f.save()
-		l.save()
-	return buf
 
-def generate_recipes(buf):
-	Recipe.objects.all().delete()
+	return "[ OK ] Entity"
+
+def generate_recipes(force=False):
+	if Recipe.objects.count() > 0:
+		if force:
+			Recipe.objects.all().delete()
+		else:
+			return "[SKIP] Recipe"
+
 	for r in recipes:
-		desc = "bere "+" ".join(r.consumes)+", potřebuje "+" ".join(r.needs)
-		nr = Recipe(name="továrna "+" ".join(r.creates),description=desc)
+		desc = "bere %s" % naturaljoin(keys(r.consumes))
+		if r.needs:
+			desc += ", potřebuje %s" % naturaljoin(r.needs)
+		nr = Recipe(name="továrna " + naturaljoin(keys(r.creates)), description=desc)
 		nr.save()
-		for i in r.needs:
-			cons = Ingredient(recipe=nr,entity=buf.get_or_create_ent(i),type=Ingredient.NEED, amount=1)
-			cons.save()
-		for i in r.consumes:
-			cons = Ingredient(
-				recipe=nr,
-				entity=buf.get_or_create_ent(i),
-				type=Ingredient.CONSUME,
-				amount=random.randint(1,3)
-				)
-			cons.save()
-		for j,i in zip(r.creates_num,r.creates):
-			cons = Ingredient(recipe=nr,entity=buf.get_or_create_ent(i),type=Ingredient.CREATE, amount=j)
-			cons.save()
+		profit = 0
+		for name in r.needs:
+			nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.NEED, amount=1)
+			profit -= amount * ent(name).price / 6  # 6 uses of recipe amortizes cost of the tool
+		for name, amount in r.consumes:
+			nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CONSUME,amount=amount)
+			profit -= amount * ent(name).price
+		for name, amount in r.creates:
+			nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CREATE, amount=amount)
+			profit += amount * ent(name).price
 
-	return buf
+	print("\t[    ] Profit %f: %s" % (profit, nr.name))
 
-def generate_pricelist(buf):
-	for k,v in all_pricelist.items():
-		buf.set_price(k, v)
-	return buf
+	return "[ OK ] Recipe"
 
-def generate_tokens(buf):
+def generate_tokens(force=False):
 	TOKEN_COUNT=1024
+
+	if Token.objects.count() > 0:
+		if force:
+			Token.objects.all().delete()
+		else:
+			return "[SKIP] Token"
 
 	def f(x):
 		import math
 		return 1/math.log(x)
 
-	Token.objects.all().delete()
-	price_sum = sum(f(buf.get_price(n)) for n in minable)
+	price_sum = sum(f(ent(n).price) for n in minable)
 	for n in minable:
-		e = buf.get_entity(n)
-		count = int(TOKEN_COUNT / price_sum * f(buf.get_price(n)))
+		e = ent(n)
+		count = int(TOKEN_COUNT / price_sum * f(e.price))
 		for _ in range(count):
 			Token.generate_one(e)
 
-	return buf
+	return "[ OK ] Token"
 
 from data.blackmarket_offers import generate_blackmarket
 
 @transaction.atomic
-def generate_data_sealed_entities():
-	buf = EntitiesBuffer()
-	load_entities(buf)
+def generate_all_data(force = False):
+	report = [
+		generate_entities(force),
+		generate_recipes(force),
+		generate_tokens(force),
+		generate_blackmarket(force),
+ 	]
 
-
-
-@transaction.atomic
-def generate_all_data():
-	buf = EntitiesBuffer()
-	generate_entities(buf)
-	print("entites done")
-	buf = generate_licences(buf)
-	print("licences done")
-	buf = generate_recipes(buf)
-	print("recipes done")
-	buf = generate_pricelist(buf)
-	print("pricelist done")
-	buf = generate_tokens(buf)
-	print("tokens done")
-
-	return
-	for x in all_goods:
-		try:
-			buf.get_entity(x).price
-		except AttributeError:
-			print("entity %s doesn't have price" % x)
-			raise
-
-	
-	#generate_blackmarket(buf)
-	print("blackmarket done")
+	return report

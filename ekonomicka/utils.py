@@ -46,8 +46,10 @@ def game_running_required(view_func):
     return wrapped_view
 
 
-register = template.Library()
+def naturaljoin(items, sep=", ", last=" a ", empty=""):
+    if len(items) == 0:
+        return empty
+    if len(items) == 1:
+        return str(items[0])
 
-@register.filter
-def gametime(delta):
-    return Game.to_date(delta) - timezone.now()
+    return "%s%s%s" % (sep.join(items[:-1]), last, items[-1])

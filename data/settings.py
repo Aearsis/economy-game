@@ -1,21 +1,14 @@
 from collections import namedtuple
 
-r = namedtuple("recipe_tuple", "consumes needs creates creates_num")
-
-
-class Recipe_tuple(r):
-    def __new__(self, consumes, needs, creates, creates_num=None):
-        if creates_num is None:
-            creates_num = tuple([1] * len(creates))
-        return super().__new__(self, consumes, needs, creates, creates_num)
-
+Recipe_tuple = namedtuple("Recipe_tuple", "consumes needs creates")
 
 # rozdělení minable surovin podle obtížnosti (podle toho, jak daleko budou
 # umístěny)
 minable_1 = """Písek
-Kámen
+Kamení
 Mamutí kel
 Žebírka
+Smrk
 Tygří kožešina
 Mamutí kožešina
 Králičí kožešina""".split("\n")
@@ -52,6 +45,7 @@ Leštěné sluneční kamínky
 Zkamenělina trilobita
 Monolit
 Ticho
+Eben
 Oheň
 Kamenná destička s komiksem
 Semínka trávy
@@ -64,16 +58,17 @@ RandomSort
 BubbleSort
 InsertSort
 QuickSort
+Cedr
 Lepící kámen
 Cedrové prkno
 Smrkové prkno
 Ebenové prkno
-Cedrové desky
-Smrkové desky
-Ebenové desky
-Cedrová polínka
-Ebenová polínka
-Smrková polínka
+Cedrová deska
+Smrková deska
+Ebenová deska
+Cedrové polínko
+Ebenové polínko
+Smrkové polínko
 Špagát""".split("\n")
 
 # licence k receptům
@@ -102,6 +97,7 @@ Křemen
 Leštěné sluneční kamínky""".split("\n")
 
 
+# OH: Spadlo by to samo na ent(x)
 def check_strategical():
     for e in strategical:
         assert e in all_goods, e + " is a strategical entity, but it must be mentioned first above"
@@ -119,6 +115,7 @@ Tesařský průkaz""".split("\n")
            ]
 
 
+# OH: Spadlo by to samo na ent(x)
 def check_licences():
     for a, b in licences:
         assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
@@ -127,72 +124,69 @@ def check_licences():
 
 # TODO: it doesn't allow numbers of consume or create now
 recipes = [
-              # [
-              #	Recipe_tuple(
-              #		needs=("Pazourková pila","Tesařský průkaz"),
-              #		consumes=(tree,),
-              #		creates=(tree+"ové prkno",)
-              #	) for tree in ["Cedr","Smrk","Eben"]
-              # ] + [
-
-              #
-              #	Recipe_tuple(
-              #		needs=("Pazourková sekerka",),
-              #		consumes=(tree,),
-              #		creates=(tree+"ové polínko",)
-              #	) for tree in ["Cedr","Smrk","Eben"]
-              #	] + [
-              #	Recipe_tuple(
-              #		needs=(),
-              #		consumes=("Med","Čistá voda","Kamení"),
-              #		creates=("Lepící kámen",),
-              #		)
-              #	] + [
+              Recipe_tuple(
+                  needs=("Pazourková pila", "Tesařský průkaz"),
+                  consumes={tree: 1},
+                  creates={tree + "ové prkno": 3},
+              )
+              for tree in ["Cedr", "Smrk", "Eben"]
+              ] + [
+              Recipe_tuple(
+                  needs=("Pazourková sekera",),
+                  consumes={tree: 1},
+                  creates={tree + "ové polínko": 3},
+              )
+              for tree in ["Cedr", "Smrk", "Eben"]
+              ] + [
               Recipe_tuple(
                   needs=("Pazourkové nůžky",),
-                  consumes=(kuze,),
-                  creates=(provazek,)
-              ) for kuze in ["Tygří kožešina", "Mamutí kožešina", "Králičí kožešina"] \
+                  consumes={kuze: 1},
+                  creates={provazek: 10},
+              )
+              for kuze in ["Tygří kožešina", "Mamutí kožešina", "Králičí kožešina"]
               for provazek in ["Kožená šňůrka", "Špagát"]
               ] + [
-
               Recipe_tuple(
                   needs=("Pazourkové nůžky",),
-                  consumes=("Mamutí kožešina",),
-                  creates=(provazek,),
-                  creates_num=(100,)
-              ) for provazek in ["Kožená šňůrka", "Špagát"]
-
+                  consumes={"Mamutí kožešina": 1},
+                  creates={provazek: 100},
+              )
+              for provazek in ["Kožená šňůrka", "Špagát"]
               ] + [
-
               Recipe_tuple(
-                  needs=("Pazourkové dláto", "Tesařský průkaz"),
-                  consumes=("Vosk",),
-                  creates=("RandomSort",)
+                  needs=(),
+                  consumes={"Med": 1, "Čistá voda": 1, "Kamení": 1},
+                  creates={"Lepící kámen": 1},
               ),
 
               Recipe_tuple(
                   needs=("Pazourkové dláto", "Tesařský průkaz"),
-                  consumes=("Mastek",),
-                  creates=("InsertSort",)
+                  consumes={"Vosk": 1},
+                  creates={"RandomSort": 1},
               ),
 
               Recipe_tuple(
                   needs=("Pazourkové dláto", "Tesařský průkaz"),
-                  consumes=("Mýdlo", "Čistá voda"),
-                  creates=("BubbleSort",)
+                  consumes={"Mastek": 1},
+                  creates={"InsertSort": 1},
               ),
 
               Recipe_tuple(
                   needs=("Pazourkové dláto", "Tesařský průkaz"),
-                  consumes=("Křemen",),
-                  creates=("QuickSort",)
+                  consumes={"Mýdlo": 1, "Čistá voda": 1},
+                  creates={"BubbleSort": 1},
+              ),
+
+              Recipe_tuple(
+                  needs=("Pazourkové dláto", "Tesařský průkaz"),
+                  consumes={"Křemen": 1},
+                  creates={"QuickSort": 1},
               ),
 
               Recipe_tuple(
                   needs=("Pazourkové kladivo", "Pazourkové dláto"),
-                  consumes=("QuickSort", "Křemen", "Žula", "Kamenec", "Dobrej pocit"),
-                  creates=("Robot",)
+                  consumes={"QuickSort": 1, "Křemen": 1, "Žula": 1, "Kamenec": 1, "Dobrej pocit": 1},
+                  creates={"Robot": 1},
               ),
           ]
 
@@ -202,8 +196,12 @@ recipes = [
 
 # TODO: asi by bylo fajn stanovit u receptů taky množství, ale do toho se mi
 # moc nechce. Všechno bude jenom jednou (nebo náhodné číslo z 1-3)-krát.
+# OH: Uvedení víckrát bude fungovat.
 
 # print(recipes)
+
+# OH: Spadlo by to samo na ent(x)
+
 
 def check_recipes():
     for r in recipes:
