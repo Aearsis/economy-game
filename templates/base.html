@@ -29,7 +29,8 @@
                 <li><a href="{% url 'control' %}">Ovládací panel</a></li>
                 <li><a href="/admin">Administrace</a></li>
                 {% endif %}
-                <li><a href="{% url 'dashboard' %}">Nástěnka</a></li>
+                <li><a href="{% url 'messages' %}">Zprávy</a></li>
+                <li><a href="{% url 'inventory' %}">Stavy týmů</a></li>
                 <li><a href="{% url 'logout' %}">Odhlásit</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Přihlásit se</a></li>

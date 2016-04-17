@@ -33,14 +33,16 @@ def create_team(request, next = "/team"):
     return render(request, "core/create_team.html", { 'form': form })
 
 
-def dashboard(request):
+def messages(request):
     data = Status.visible()
+    return render(request, 'dashboard/messages.html', { 'statuses': data[0], 'refreshed': data[1] })
+
+
+def inventory(request):
     entities = Entity.objects.order_by("name")
     teams = Team.objects.order_by("name")
     table = [[team.get_balance(entity) for team in teams] for entity in entities]
-    return render(request, 'dashboard/in_base.html', {
-        'statuses' : data[0],
-        'refreshed' : data[1],
+    return render(request, 'dashboard/inventory.html', {
         'teams' : teams,
         'table' : table,
         'team' : request.team,

@@ -24,10 +24,11 @@ urlpatterns = [
     url(r'^team/', core.views.team, name = 'team'),
     url(r'^login/$', auth.views.login, {'template_name' : 'core/login.html', 'authentication_form' : forms.AuthenticationForm }, name='login'),
     url(r'^logout/$', auth.views.logout, { 'template_name' : 'core/logout.html' }, name='logout'),
-    url(r'^dashboard/', core.views.dashboard, name = 'dashboard'),
     url(r'^control/start', core.views.control_start, name = 'control/start'),
     url(r'^control/', core.views.control, name = 'control'),
     url(r'^wait/', core.views.wait_to_start, name = 'wait'),
     url(r'^entity_detail/(\d+)', core.views.entity_detail, name = 'entity_detail'),
+    url(r'^messages/', core.views.messages, name='messages'),
+    url(r'^inventory/', core.views.inventory, name='inventory'),
     url(r'^$', core.views.router, name = 'router'),
 ]
