@@ -7,7 +7,6 @@ class Recipe_tuple(r):
 			creates_num = tuple([1]*len(creates))
 		return super().__new__(self,consumes,needs,creates,creates_num)
 
-
 # rozdělení minable surovin podle obtížnosti (podle toho, jak daleko budou
 # umístěny)
 minable_1 = """Písek
@@ -85,12 +84,8 @@ Stříhačské oprávnění
 Tesařský průkaz
 Nástrojářský průkaz""".split("\n")
 
-
 all_goods = minable + makable + markatable + tools
 
-
-
-# TODO na ŠE a KY: Špagát je nové jméno pro Špagát?
 strategical = """Ebenové prkno
 Kožená šňůrka
 Špagát
@@ -104,8 +99,9 @@ Pazourek
 Křemen
 Leštěné sluneční kamínky""".split("\n")
 
-for e in strategical:
-	assert e in all_goods, e+" is a strategical entity, but it must be mentioned first above"
+def check_strategical():
+	for e in strategical:
+		assert e in all_goods, e+" is a strategical entity, but it must be mentioned first above"
 
 
 
@@ -120,10 +116,11 @@ Tesařský průkaz""".split("\n")
 #	("Střihačské oprávnění", "Pazourkové nůžky")
 	]
 
-for a,b in licences:
-	assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
-	assert b in all_goods, "%s unknown although it's a licenced entity. It must be mentioned earlier." % b
-	
+def check_licences():
+	for a,b in licences:
+		assert a in all_goods, "%s unknown, although it's a licence. It must be mentioned earlier." % a
+		assert b in all_goods, "%s unknown although it's a licenced entity. It must be mentioned earlier." % b
+
 
 # TODO: it doesn't allow numbers of consume or create now
 recipes = [
@@ -205,13 +202,25 @@ recipes = [
 
 #print(recipes)
 
-for r in recipes:
-	assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined "+str(r)
-	for c in r.consumes:
-		assert c in all_goods, str(c)+" unknown"
-	for c in r.creates:
-		assert c in all_goods, str(c)+" unknown "+str(r)
-		 
+def check_recipes():
+	for r in recipes:
+		assert all(n in tools for n in r.needs), "Recipe_tuple needs undefined "+str(r)
+		for c in r.consumes:
+			assert c in all_goods, str(c)+" unknown"
+		for c in r.creates:
+			assert c in all_goods, str(c)+" unknown "+str(r)
+
+def check():
+	check_strategical()
+	check_licences()
+	check_recipes()
+	print("check OK")
+
+
+# comment to disable it
+check()
+
+			 
 if __name__ == "__main__":
 	print("všech surovin",len(all_goods))
 	print("minable",len(minable))

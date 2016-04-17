@@ -16,10 +16,10 @@ class EntitiesBuffer:
 		Entity.objects.all().delete()
 		self.mapping = {}
 
-	def create_entity(self, name, units="ks"):
+	def create_entity(self, name, **kwargs):
 		if name in self.mapping:
 			raise ValueError("already created")
-		e = Entity(name=name, units=units)
+		e = Entity(name=name, **kwargs)
 		e.price = all_pricelist[name]
 		e.save()
 		self.mapping[name] = e
@@ -38,14 +38,28 @@ class EntitiesBuffer:
 
 	def get_price(self, name):
 		return self.mapping[name].price
-		
 
-def generate_entities():
-	buf = EntitiesBuffer()
-	for n in all_goods:
-		buf.create_entity(n)
 
+def generate_entities(buf):
+	for n in markatable:
+		buf.create_entity(n, is_markatable=True)
+	for n in minable:
+		buf.create_entity(n, is_minable=True)
+	for n in makable:
+		buf.create_entity(n, is_makable=True)
+	for n in tools:
+		buf.create_enity(n)
+	for n in strategical:
+		e = buf.get_entity(n)
+		e.is_strategic = True
+		e.save()
 	return buf
+
+# TODO
+def load_entities(buf):
+	buf.load_entities(all_goods)
+	return buf
+
 
 def generate_licences(buf):
 	for k,v in licences:
@@ -88,8 +102,16 @@ def generate_pricelist(buf):
 from data.blackmarket_offers import generate_blackmarket
 
 @transaction.atomic
+def generate_data_sealed_entities():
+	buf = EntitiesBuffer()
+	load_entities(buf)
+
+
+
+@transaction.atomic
 def generate_all_data():
-	buf = generate_entities()
+	buf = EntitiesBuffer()
+	generate_entities(buf)
 	print("entites done")
 	buf = generate_licences(buf)
 	print("licences done")
