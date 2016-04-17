@@ -42,9 +42,19 @@ def inventory(request):
     entities = Entity.objects.order_by("name")
     teams = Team.objects.order_by("name")
     table = [[team.get_balance(entity) for team in teams] for entity in entities]
+
+    table_filtered = []
+    for row in table:
+        owned = False
+        for bal in row:
+            if bal.amount > 0:
+                owned = True
+        if owned:
+            table_filtered.append(row)
+
     return render(request, 'dashboard/inventory.html', {
         'teams' : teams,
-        'table' : table,
+        'table' : table_filtered,
         'team' : request.team,
     })
 
