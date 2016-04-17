@@ -156,6 +156,9 @@ class Auction(models.Model):
     def visible_wants(self):
         return self.wants.filter(visible__exact=True)
 
+    def add_item(self, entity: Entity, amount, *args, **kwargs):
+        self.auctioneditem_set.create(entity=entity, amount=amount, *args, **kwargs)
+
 
 class AuctionException(Exception):
     pass
@@ -244,8 +247,7 @@ class WhiteAuction(Auction):
         else:
             Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
 
-    def add_item(self, entity: Entity, amount, *args, **kwargs):
-        self.auctioneditem_set.create(entity, amount, *args, **kwargs)
+
 
     class Meta:
         verbose_name_plural = "Auctions"

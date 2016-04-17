@@ -52,13 +52,12 @@ def fake_status():
     #  %(advertised)s - původně nabízeno (1ks Izolepa, 1ks Kámen a 3m Dobrej pocit)
 
     return choice([
-        "Být či nebýt... to není správná otázka. Koupit či nekoupit, to je oč tu běží."
-        "%(seller)s uzavřel obchod s týmem %(buyer)s o koupi %(advertised)s, ale příšlo místo toho %(bought)s!",
-        "%(seller)s pěkně vypekl tým %(buyer)s, místo %(advertised)s poslal %(bought)s!",
-        "Víte jaké to je, když chcete koupit %(advertised)s, ale místo toho %(bought)s přijde? No, %(buyer)s už to ví!",
-        "%(seller)s přišel o %(advertised)s, sežrali mu to kamenožrouti, ale aspoň poslal %(bought)s.",
-        "%(buyer)s má prostě smůlu, ale lepší %(bought)s v hrsti než-li %(advertised)s na střeše.",
-        "%(buyer)s zaplatili za %(advertised)s, ale příšlo jenom %(bought)s.",
+        "%(seller)s uzavřel obchod s týmem %(buyer)s o koupi %(advertised)s, ale přišlo místo toho %(bought)s!",
+	"%(seller)s pěkně vypekl tým %(buyer)s, místo %(advertised)s poslal %(bought)s!",
+	"Víte jaké to je, když chcete koupit %(advertised)s, ale místo toho %(bought)s přijde? No, %(buyer)s už to ví!",
+	"%(seller)s přišel o %(advertised)s, sežrali mu to kamenožrouti, ale aspoň poslal %(bought)s.",
+	"%(buyer)s má prostě smůlu, ale lepší %(bought)s v hrsti než-li %(advertised)s na střeše.",
+        "%(buyer)s zaplatili za %(advertised)s, ale přišlo jenom %(bought)s.",
         "Tým %(buyer)s koupil %(advertised)s, eeh, vlastně teda %(bought)s.",
         "%(seller)s okradl tým %(buyer)s o %(sold)s, pojišťovna zaplatila pouze %(bought)s.",
         "Oslavujte Hroší bohy! Stal se zázrak %(seller)s poslal %(advertised)s, ale k %(buyer)s dorazilo %(bought)s.",

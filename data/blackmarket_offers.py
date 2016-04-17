@@ -8,6 +8,7 @@ from core.models import *
 from random import *
 
 
+
 def randfloat(a, b):
     assert a <= b
     return a + random.random() * (b - a)
@@ -15,6 +16,8 @@ def randfloat(a, b):
 
 def rand_subset(superset, max_size, min_size=0):
     superset = list(superset)
+    return set(superset)
+
     size = randint(min_size, max_size)
 
     if size >= len(superset):
@@ -23,9 +26,9 @@ def rand_subset(superset, max_size, min_size=0):
     shuffle(superset)
     return set(superset[:size])
 
+
 def ent_filter(**kwargs):
     return Entity.objects.filter(**kwargs).all()
-
 
 class EvolvingSetting:
     def __init__(self, setting):
@@ -45,7 +48,6 @@ class EvolvingSetting:
 class SellerBase:
     def __init__(self,):
         self.game_len = Game.the_row().length
-        self.seller_name = "base"
 
     @staticmethod
     def get_items_to_price(price, items):
@@ -168,7 +170,6 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         }).value_in_time
 
         # věci, které se v tu dobu budou prodávat
-        # 1. hodinu listy
         self.selling_entities = EvolvingSetting({
             0: ent_filter(is_markatable=True),
             1/3: Entity.objects.exclude(is_minable=False, is_markatable=False).all(),
@@ -260,13 +261,16 @@ class TrivialSeller(SellerBase):
 class StaticAuction(SellerBase):
     def __init__(self, coef, *args, **kwargs):
         '''coef: coef from estimate_price'''
+        super().__init__()
         self.estimate = not 'var_min' in kwargs.keys()
         if self.estimate:
             kwargs['var_min'] = 0
         if 'begin' in kwargs:
             if not isinstance(kwargs['begin'], datetime.timedelta):
                 assert 0<= kwargs['begin'] <=1
-                kwargs['begin'] = datetime.timedelta(seconds=self.game_len*kwargs['begin'])
+                kwargs['begin'] = datetime.timedelta(seconds=self.game_len.seconds*kwargs['begin'])
+        if 'status_text' not in kwargs:
+            kwargs['status_text'] = fair_status()
         self.coef = coef
         self.b = BlackAuction.objects.create(*args, **kwargs)
 
@@ -277,15 +281,50 @@ class StaticAuction(SellerBase):
         if self.estimate:
             self.b.var_min = self.estimate_price(self.b, self.coef)
             self.b.save()
+            
+def e(name):
+    return Entity.objects.get(name=name)
 
+def sell_rafts_for_robots():
+    def create(time):
+        with StaticAuction(coef=1,
+                        begin=time,
+                        var_entity=choice(ent_filter(is_minable=True)),
+                        seller_name="Igor Voloďa") as b:
+            b.add_item(e('Robot'), 1)
+            b.add_item(e('Vor'), -1)
+    
+    for _ in range(3): create(0)  # třikrát se objeví na začátku
+    c = 60  # number of auctions
+    for i in range(c):
+        create(i/c)
+        
+def peanut_merchant():
+    def create(time):
+        b = BlackAuction(begin=time,end=None,
+                          var_entity=e("Burák"),
+                          var_min=1,
+                          seller_name='Mgr. Burák')
+        
+        b.save()
+        b.add_item(e('Robot'), -1)
+    
+    num = 10
+    for i in range(num):
+        create(1/3+i*1/15)
+       
 
 def generate_blackmarket(force=False):
+
+    
     if BlackAuction.objects.count() > 0:
         if force:
             BlackAuction.objects.all().delete()
         else:
             return "[SKIP] BlackAuction"
 
+    sell_rafts_for_robots()
+    
     sellers = [
         #TrivialSeller(buf),
         RandomStuffRiscantSeller(),
@@ -294,11 +333,4 @@ def generate_blackmarket(force=False):
     for f in sellers:
         f.generate()
 
-    def e(name):
-        return Entity.objects.get(name=name)
-
-    with StaticAuction(coef=1,
-            begin=datetime.timedelta(minutes=10),
-            var_entity=e('Oheň')) as b:
-        b.add_item(e('Žula'), 1)
-        b.add_item(e('Křemen'), 1)
+ 

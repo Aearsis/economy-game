@@ -100,7 +100,7 @@ def generate_all_data(force = False):
     report = [
         generate_entities(force),
         generate_recipes(force),
-        generate_tokens(force),
+        #generate_tokens(force),
         generate_blackmarket(force),
     ]
 
