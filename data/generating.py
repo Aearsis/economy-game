@@ -1,14 +1,12 @@
 from django.db import models
 from django.db import transaction
-# Create your models here.
 
 from core.models import Entity
 from recipes.models import Recipe, Ingredient
 from tokens.models import Token
 from ekonomicka.utils import naturaljoin
 
-from data.settings import *
-from data.blackmarket_pricelist import *
+from data.static import *
 
 import random
 
@@ -26,22 +24,14 @@ def generate_entities(force=False):
 		else:
 			return "[SKIP] Entity"
 
-	for name, price in all_pricelist.items():
-		Entity.objects.create(name=name, price=price)
-
-	def set_prop(name, prop):
-		e = ent(name=name)
-		setattr(e, prop, True)
-		e.save()
-
-	for n in markatable:
-		set_prop(n, 'is_markatable')
-	for n in minable:
-		set_prop(n, 'is_minable')
-	for n in makable:
-		set_prop(n, 'is_makable')
-	for n in strategical:
-		set_prop(n, 'is_strategical')
+	for einfo in all_goods:
+		e = Entity.objects.create(
+			name=einfo.name,
+			price=einfo.price,
+			is_strategic=einfo.strategic,
+			is_markatable=not einfo.sell,
+			is_minable=einfo.token_amount > 0,
+		)
 
 	for k, v in licences:
 		f = ent(v)
@@ -58,11 +48,13 @@ def generate_recipes(force=False):
 			return "[SKIP] Recipe"
 
 	for r in recipes:
-		desc = "bere %s" % naturaljoin(keys(r.consumes))
-		if r.needs:
-			desc += ", potřebuje %s" % naturaljoin(r.needs)
-		nr = Recipe(name="továrna " + naturaljoin(keys(r.creates)), description=desc)
-		nr.save()
+		if r.desc is None:
+			r.desc = "bere %s" % naturaljoin(keys(r.consumes))
+			if r.needs:
+				r.desc += ", potřebuje %s" % naturaljoin(r.needs)
+		if r.name is None:
+			r.name = "Továrna na %s" % naturaljoin(keys(r.creates))
+		nr = Recipe.objects.create(name=r.name, description=r.desc)
 		profit = 0
 		for name in r.needs:
 			nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.NEED, amount=1)
@@ -106,9 +98,9 @@ from data.blackmarket_offers import generate_blackmarket
 def generate_all_data(force = False):
 	report = [
 		generate_entities(force),
-		generate_recipes(force),
-		generate_tokens(force),
-		generate_blackmarket(force),
+		#generate_recipes(force),
+		#generate_tokens(force),
+		#generate_blackmarket(force),
  	]
 
 	return report
