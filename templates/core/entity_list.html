@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% load utils %}
+
+{% for entity in entities %}
+<a class="entity-thumbnail {{ entity.css_class }} text-center" href="{% url "entity_detail" entity.id %}">
+    {{ entity|entity_icon_nolink }}<br>
+    <strong>{{ entity.name }}</strong>
+</a>
+{% endfor %}
+
+
+{% endblock %}

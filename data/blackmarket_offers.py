@@ -23,6 +23,9 @@ def rand_subset(superset, max_size, min_size=0):
     shuffle(superset)
     return set(superset[:size])
 
+def ents():
+    return Entity.objects.all()
+
 
 class EvolvingSetting:
     def __init__(self, setting):
@@ -61,7 +64,9 @@ class SellerBase:
 
     @staticmethod
     def estimate_price(auction, coef):
-        """ Returns expected price of var_entity in comparison to items sold and bought. """
+        """ Returns expected price of var_entity in comparison to items sold and bought.
+        coef: coefficient of auction initial price with respect to the "real" value of buying/selling stuff
+        """
         diff = sum(item.entity.price * item.amount for item in auction.auctioneditem_set.all())
         diff /= auction.var_entity.price
         """
@@ -144,28 +149,32 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         self.name = "Dr. Kámen"
 
         # risk
-        self.risks = EvolvingSetting({0: 0, 0.1: 0.1, 0.15: 0.15, 0.4: 0.2, 0.5: 0.01, 0.65: 0.25})
+        self.risks = EvolvingSetting({0: 0})
 
         # average time between auctions in seconds
-        self.spans = EvolvingSetting({0: 60, 0.1: 40, 0.2: 30, 0.25: 20})
-
-        # průměrný profit z výdělků
-        self.profits = EvolvingSetting({0: 2})
+        self.spans = EvolvingSetting({0: 12})
 
         # věci, za které bude černý trh nakupovat
+        # 1. hodinu jenom minable
+        # 2. hodinu markatable
+        # 3. hodinu: všechno
         self.buying_stuff = EvolvingSetting({
-            0: minable_1,
-            0.05: minable,
-            0.1: minable + markatable,
-            0.3: all_goods
+            0: list(ents().filter(lambda x: x.is_minable and x.price < 60)),
+            
+            1/3: list(ents().filter(lambda e: e.is_minable or e.is_markatable)),
+            
+            0.05: list(ents().filter(lambda x: x.is_minable)),
+            0.1: list(ents().filter(lambda x: x.is_minable)),
+            0.3: list(ents()),
         })
 
         self.buying_entities = lambda time: map(ent, self.buying_stuff.value_in_time(time))
 
         # věci, které se v tu dobu budou prodávat
+        # 1. hodinu listy 
         self.selling_stuff = EvolvingSetting({
-            0: list(set(minable + markatable)),
-            0.1: list(set(minable + markatable + strategical)),
+            0: list(ents()).filter(lambda e: e.is_markatable)),
+            0.1: list(ents().filter(lambda e: e.is_markatable)),
             # k nákupu jsou i aukce
             0.9: all_goods
         })
@@ -212,20 +221,20 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         }).value_in_time
 
     def generate(self):
-        # for x in range(0,100,20):
-        #	self.generate_one(x/100)
+        for x in range(0,100,20):
+            self.generate_one(x/100)
 
-        # return
+        return
         # TODO
 
-        seconds = 0
-        perc_time = 0
-        while perc_time < 1:
-            span = self.spans.value_in_time(perc_time)
-            seconds += span
-            perc_time = seconds / self.game_len.seconds
+        #seconds = 0
+        #perc_time = 0
+        #while perc_time < 1:
+        #    span = self.spans.value_in_time(perc_time)
+        #    seconds += span
+        #    perc_time = seconds / self.game_len.seconds
 
-            self.generate_one(perc_time)
+        #    self.generate_one(perc_time)
 
 
 class TrivialSeller(SellerBase):
@@ -255,12 +264,16 @@ class TrivialSeller(SellerBase):
         return [ent("Křemen"), ent("Žula")]
 
 
-# static
 class StaticAuction(SellerBase):
     def __init__(self, coef, *args, **kwargs):
+        '''coef: coef from estimate_price'''
         self.estimate = not 'var_min' in kwargs.keys()
         if self.estimate:
             kwargs['var_min'] = 0
+        if 'begin' in kwargs:
+            if not isinstance(kwargs['begin'], datetime.timedelta):
+                assert 0<= kwargs['begin'] <=1
+                kwargs['begin'] = datetime.timedelta(seconds=self.game_len*kwargs['begin'])
         self.coef = coef
         self.b = BlackAuction.objects.create(*args, **kwargs)
 
@@ -281,15 +294,15 @@ def generate_blackmarket(force=False):
             return "[SKIP] BlackAuction"
 
     sellers = [
-        #		TrivialSeller(buf),
+        #TrivialSeller(buf),
         RandomStuffRiscantSeller(),
     ]
 
     for f in sellers:
         f.generate()
 
-# with StaticAuction(1,
-#			begin=datetime.timedelta(minutes=10),
-#			var_entity=e('Oheň')) as b:
-#		b.add_item(e('Žula'), 1)
-#		b.add_item(e('Žula'), 1)
+    with StaticAuction(coef=1,
+			begin=datetime.timedelta(minutes=10),
+			var_entity=e('Oheň')) as b:
+        b.add_item(e('Žula'), 1)
+        b.add_item(e('Křemen'), 1)

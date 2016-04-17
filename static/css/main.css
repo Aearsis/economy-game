@@ -9,16 +9,8 @@
     text-align: right;
 }
 
-tr.ent-needs-licence {
-   background-color: #fd8;
-}
-
-tr.ent-licence {
-   background-color: #cf0;
-}
-
-tr.ent-strategic {
-   background-color: #acf;
+.ent-strategic {
+   background-color: rgb(255, 188, 154);
 }
 
 .pull-center {
@@ -43,4 +35,17 @@ tr.ent-strategic {
     display: inline-block;
     vertical-align: middle;
     background-image: url("../img/icons-sprite.png");
+}
+
+.entity-thumbnail {
+    width: 120px;
+    height: 120px;
+    padding: 20px 0;
+    float: left;
+    margin: 5px;
+}
+
+.entity strong {
+    display: block;
+    text-align: center;
 }
