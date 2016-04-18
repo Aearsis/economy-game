@@ -164,18 +164,18 @@ class Auction(models.Model):
         self.auctioneditem_set.create(entity=entity, amount=amount, *args, **kwargs)
 
     def formatted_status(self, seller_name):
-        sold = {e: e.amount for e in self.sells.filter(will_sell=True).all()}
-        bought = {e: e.amount for e in self.wants.filter(will_sell=True).all()}
-        advertised = {e: e.amount for e in self.visible_sells.all()}
+        sold = {e.entity: e.amount for e in self.sells.filter(will_sell=True).all()}
+        bought = {e.entity: e.amount for e in self.wants.filter(will_sell=True).all()}
+        advertised = {e.entity: e.amount for e in self.visible_sells.all()}
 
         winner, price = self.effective_offer
         if winner is None:
             return "Tohle je chyba v přímém přenosu :)"
 
         target = bought if price > 0 else sold
-        if not self.var_entity in target:
+        if not self.var_entity in target.keys():
             target[self.var_entity] = 0
-        bought[self.var_entity] += price
+        target[self.var_entity] += price
 
         return self.status_text % {
             'seller': seller_name,

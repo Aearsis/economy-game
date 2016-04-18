@@ -46,7 +46,7 @@ def amount_control(amount):
         if amount < 0:
             return '<span class="label label-danger">%s</span>' % amount
         return '<span class="label label-success">%s</span>' % amount
-    return mark_safe(inner)
+    return mark_safe(inner(amount))
 
 @register.filter
 def auction_class(auction, team):
@@ -125,7 +125,7 @@ def auction_fixed(auc: Auction):
         else:
             return mark_safe("Ale nic nenabízí ani neprodává.")
     if not sells:
-        return mark_safe("Nabízí: %s" % naturaljoin(map(format, sells)))
+        return mark_safe("Požaduje: %s" % naturaljoin(map(format, wants)))
 
     return mark_safe("Nabízí %s výměnou za %s." % (naturaljoin(map(format, sells)), naturaljoin(map(format, wants))))
 

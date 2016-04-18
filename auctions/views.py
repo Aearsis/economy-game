@@ -20,7 +20,7 @@ def white_list(request):
 def black_market(request):
     return render(request, "auctions/black_market.html", {
         'auctions': BlackAuction.objects.filter(begin__lte=Game.game_time()).exclude(end__lte=Game.game_time())
-                  .order_by('-end', '-begin').all()
+                  .order_by('-end', '-begin').all()[:200]
     })
 
 

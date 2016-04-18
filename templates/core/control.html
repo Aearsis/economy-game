@@ -37,11 +37,11 @@
             <tr>
                 <th>{% ifchanged balance.team.name %}{{ balance.team.name }}{% endifchanged %}</th>
                 <td>{{ balance.entity }}</td>
-                <td>{{ balance.amount|amount_control|safe }}</td>
-                <td>{{ balance.blocked|amount_control|safe }}</td>
-                <td>{{ balance.blocked_now|amount_control|safe }}</td>
-                <td>{{ balance.expected|amount_control|safe }}</td>
-                <td>{{ balance.expected_now|amount_control|safe }}</td>
+                <td>{{ balance.amount|amount_control }}</td>
+                <td>{{ balance.blocked|amount_control }}</td>
+                <td>{{ balance.blocked_now|amount_control }}</td>
+                <td>{{ balance.expected|amount_control }}</td>
+                <td>{{ balance.expected_now|amount_control }}</td>
             </tr>
         {% endif %}
     {% endfor %}
