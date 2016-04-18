@@ -33,7 +33,7 @@ all_goods = (
     EntityTuple("Kamenná palice", 180),
     EntityTuple("Kamenná cihla", 1),
     EntityTuple("Kamenná destička s komiksy", 600, strategic=True),
-    EntityTuple("Kamenná sekera", 360),
+    EntityTuple("Kamenná sekyra", 360),
     EntityTuple("Kamenná dlaždice", 2),
     EntityTuple("Kamenné dláto", 600),
     EntityTuple("Kamenný lis", 600, sell=False),
@@ -52,7 +52,7 @@ all_goods = (
     EntityTuple("Pazourková sekera", 200),
     EntityTuple("Pazourková pila", 200),
     EntityTuple("Pazourkové nůžky", 600, strategic=True),
-    EntityTuple("Pazourkový nůž", 30),
+    EntityTuple("Pazourkový nůž", 30),
     EntityTuple("Pila z piraních zubů", 300),
     EntityTuple("Plátky bambusu", 50),
     EntityTuple("Proutěná ošatka", 10),
@@ -96,8 +96,8 @@ class RecipeTuple:
 recipes = [
     RecipeTuple(
         consumes={"Eben": 1},
-        needs=("Kamenná sekyra"),
-        creates={"Ebenové polínko": 5}
+        needs=("Kamenná sekyra",),
+        creates={"Ebenové polínko": 5}
     ),
     RecipeTuple(
         consumes={"Ebenové polínko": 1, "Ebenové prkno": 1, "Zub šavlozubého tygra": 1, "Cedrová deska": 1},
@@ -105,7 +105,7 @@ recipes = [
     ),
     RecipeTuple(
         consumes={"Eben": 1},
-        needs=("Pila z piraních zubů"),
+        needs=("Pila z piraních zubů",),
         creates={"Ebenové prkno": 6}
     ),
     RecipeTuple(
@@ -126,12 +126,12 @@ recipes = [
     ),
     RecipeTuple(
         consumes={"Cedr": 1},
-        needs=("Pazourková sekera"),
+        needs=("Pazourková sekera",),
         creates={"Cedrové polínko": 4}
     ),
     RecipeTuple(
         consumes={"Cedr": 1},
-        needs=("Pazourková pila"),
+        needs=("Pazourková pila",),
         creates={"Cedrové prkno": 1},
     ),
     RecipeTuple(
@@ -140,22 +140,22 @@ recipes = [
     ),
     RecipeTuple(
         consumes={"Králičí kůže": 1},
-        needs=("Pazourkové nůžky"),
+        needs=("Pazourkové nůžky",),
         creates={"Kožená šňůrka": 1},
     ),
     RecipeTuple(
         consumes={"Tygří kůže": 1},
-        needs=("Pazourkové nůžky"),
+        needs=("Pazourkové nůžky",),
         creates={"Kožená šňůrka": 2},
     ),
     RecipeTuple(
         consumes={"Mamutí kůže": 1},
-        needs=("Pazourkové nůžky"),
+        needs=("Pazourkové nůžky",),
         creates={"Kožená šňůrka": 4},
     ),
     RecipeTuple(
         consumes={"Plátky bambusu": 10},
-        needs=("Kamenný lis"),
+        needs=("Kamenný lis",),
         creates={"Bambusová trubka": 1},
     ),
     RecipeTuple(
@@ -168,17 +168,17 @@ recipes = [
     ),
     RecipeTuple(
         consumes={"Bambus": 2},
-        needs=("Pazourkový nůž"),
+        needs=("Pazourkový nůž",),
         creates={"Plátky bambusu": 1},
     ),
     RecipeTuple(
         consumes={"Pazourek": 1},
-        needs=("Kamenná palice"),
+        needs=("Kamenná palice",),
         creates={"Pazourkový nůž": 2},
     ),
     RecipeTuple(
         consumes={"Fosilie amonit": 60, "Blesky a hromy": 3},
-        needs=("Přízeň hroších bohů"),
+        needs=("Přízeň hroších bohů",),
         creates={"Krásnej šutr": 1},
     ),
     RecipeTuple(
@@ -200,7 +200,7 @@ recipes = [
     ),
     RecipeTuple(
         consumes={"Žula": 1},
-        needs=("Kamenná palice"),
+        needs=("Kamenná palice",),
         creates={"Písek": 120}
     ),
     RecipeTuple(

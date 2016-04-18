@@ -35,7 +35,7 @@ class EvolvingSetting:
 
 class SellerBase:
     def __init__(self,):
-        self.game_len = Game.the_row().length
+        self.game_len = Game.the_row().length.seconds
 
     @staticmethod
     def get_items_to_price(price, items):
@@ -279,7 +279,8 @@ class StaticAuction(SellerBase):
         if 'begin' in kwargs:
             if not isinstance(kwargs['begin'], datetime.timedelta):
                 assert 0<= kwargs['begin'] <=1
-                kwargs['begin'] = datetime.timedelta(seconds=self.game_len.seconds*kwargs['begin'])
+                
+                kwargs['begin'] = datetime.timedelta(seconds=self.game_len*kwargs['begin'])
         if 'status_text' not in kwargs:
             kwargs['status_text'] = fair_status()
         self.coef = coef
@@ -312,10 +313,10 @@ def sell_rafts_for_robots():
         
 def peanut_merchant():
     def create(time):
-        b = BlackAuction(begin=time,end=None,
+        b = BlackAuction(begin=datetime.timedelta(seconds=time*Game.the_row().length.seconds),end=None,
                           var_entity=e("Burák"),
                           var_min=1,
-                          seller_name='Mgr. Burák')
+                          seller_name='doc. Burák')
         
         b.save()
         b.add_item(e('Robot'), -1)
@@ -335,9 +336,9 @@ def generate_blackmarket(force=False):
             return "[SKIP] BlackAuction"
 
     sell_rafts_for_robots()
+    peanut_merchant()
     
     sellers = [
-        #TrivialSeller(buf),
         RandomStuffRiscantSeller(),
     ]
 

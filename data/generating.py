@@ -55,16 +55,16 @@ def generate_recipes(force=False):
         if r.name is None:
             r.name = "Továrna na %s" % naturaljoin(r.creates.keys())
         nr = Recipe.objects.create(name=r.name, description=r.desc)
-    profit = 0
-    for name in r.needs:
-        nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.NEED, amount=1)
-        profit -= amount * ent(name).price / 6  # 6 uses of recipe amortizes cost of the tool
-    for name, amount in r.consumes.items():
-        nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CONSUME,amount=amount)
-        profit -= amount * ent(name).price
-    for name, amount in r.creates.items():
-        nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CREATE, amount=amount)
-        profit += amount * ent(name).price
+        profit = 0
+        for name in r.needs:
+            nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.NEED, amount=1)
+            profit -= ent(name).price / 6  # 6 uses of recipe amortizes cost of the tool
+        for name, amount in r.consumes.items():
+            nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CONSUME,amount=amount)
+            profit -= amount * ent(name).price
+        for name, amount in r.creates.items():
+            nr.ingredient_set.create(recipe=nr,entity=ent(name),type=Ingredient.CREATE, amount=amount)
+            profit += amount * ent(name).price
 
     print("\t[    ] Profit %f: %s" % (profit, nr.name))
 
