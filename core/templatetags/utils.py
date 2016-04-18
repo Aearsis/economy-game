@@ -1,7 +1,7 @@
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.safestring import mark_safe
 
-from auctions.models import WhiteAuction
+from auctions.models import WhiteAuction, Auction
 from core.models import *
 from ekonomicka.utils import *
 register = template.Library()
@@ -36,14 +36,15 @@ def quantity(amount, entity):
     return mark_safe("%s&times;%s" % (amount, entity_icon(entity)))
 
 
-@register.filter(is_safe=True)
+@register.filter
 def amount_control(amount):
-    if amount == 0:
-        return ""
-    if amount < 0:
-        return '<span class="label label-danger">%s</span>' % amount
-    return '<span class="label label-success">%s</span>' % amount
-
+    def inner(amount):
+        if amount == 0:
+            return ""
+        if amount < 0:
+            return '<span class="label label-danger">%s</span>' % amount
+        return '<span class="label label-success">%s</span>' % amount
+    return mark_safe(inner)
 
 @register.filter
 def auction_class(auction, team):
@@ -81,14 +82,14 @@ def auction_status(auction, team):
 
 @register.filter
 def entity_link_href(entity: Entity, inside):
-    return '<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), inside)
+    return mark_safe('<a href="%s">%s</a>' % (reverse("entity_detail", args=(entity.id,)), inside))
 
 
 @register.filter
 def entity_link(entity, content=None):
     if content is None:
         content = entity.name
-    return mark_safe(entity_link_href(entity, content))
+    return entity_link_href(entity, content)
 
 
 @register.filter
@@ -100,4 +101,29 @@ def entity_icon_nolink(entity):
 def entity_icon(entity):
     return entity_link(entity, entity_icon_nolink(entity))
 
+@register.filter
+def auction_var(auc: Auction):
+    _, offer = auc.effective_offer
+    if offer >= 0:
+        return mark_safe("Požaduje %s" % quantity(offer, auc.var_entity))
+    else:
+        return mark_safe("Nabízí %s" % quantity(offer, auc.var_entity))
+
+@register.filter
+def auction_fixed(auc: Auction):
+    wants = auc.visible_wants.all()
+    sells = auc.visible_sells.all()
+
+    def format(ai):
+        return quantity(ai.amount, ai.entity)
+
+    if not wants:
+        if sells:
+            return mark_safe("Prodává %s." % naturaljoin(map(format, wants)))
+        else:
+            return mark_safe("Ale nic nenabízí ani neprodává.")
+    if not sells:
+        return mark_safe("Nabízí %s." % naturaljoin(map(format, sells)))
+
+    return mark_safe("Nabízí %s výměnou za %s." % (naturaljoin(map(format, sells)), naturaljoin(map(format, wants))))
 

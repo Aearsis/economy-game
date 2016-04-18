@@ -2,6 +2,8 @@ from core.models import *
 import timedelta
 import datetime
 
+from ekonomicka.utils import naturaljoin
+
 
 class Auction(models.Model):
     begin = timedelta.TimedeltaField()
@@ -16,6 +18,8 @@ class Auction(models.Model):
 
     commited = models.BooleanField(default=False)
     buyer = models.ForeignKey(Team, null=True, blank=True)
+
+    status_text = models.TextField()
 
     @property
     def concrete_auction(self):
@@ -159,6 +163,28 @@ class Auction(models.Model):
     def add_item(self, entity: Entity, amount, *args, **kwargs):
         self.auctioneditem_set.create(entity=entity, amount=amount, *args, **kwargs)
 
+    def formatted_status(self, seller_name):
+        sold = {e: e.amount for e in self.sells.filter(will_sell=True).all()}
+        bought = {e: e.amount for e in self.wants.filter(will_sell=True).all()}
+        advertised = {e: e.amount for e in self.visible_sells.all()}
+
+        winner, price = self.effective_offer
+        if winner is None:
+            return "Tohle je chyba v přímém přenosu :)"
+
+        target = bought if price > 0 else sold
+        if not self.var_entity in target:
+            target[self.var_entity] = 0
+        bought[self.var_entity] += price
+
+        return self.status_text % {
+            'seller': seller_name,
+            'buyer': winner.name,
+            'bought': naturaljoin(["%d%s %s" % (amount, e.units, e.name) for e, amount in bought.items()]),
+            'sold': naturaljoin(["%d%s %s" % (amount, e.units, e.name) for e, amount in sold.items()]),
+            'advertised': naturaljoin(["%d%s %s" % (amount, e.units, e.name) for e, amount in advertised.items()]),
+        }
+
 
 class AuctionException(Exception):
     pass
@@ -243,7 +269,7 @@ class WhiteAuction(Auction):
     def commit(self):
         super().commit()
         if self.buyer is not None:
-            Status.add("%s vyhrál aukci od týmu %s!" % (self.buyer, self.seller))
+            Status.add(self.formatted_status(self.seller.name))
         else:
             Status.add("Aukce týmu %s skončila bez vítěze." % self.seller, team=self.seller)
 
@@ -255,7 +281,6 @@ class WhiteAuction(Auction):
 
 class BlackAuction(Auction):
     seller_name = models.CharField(max_length=128)
-    status_text = models.TextField()
 
     def __str__(self):
         return "Nabídka od prodejce %s" % self.seller_name
@@ -272,9 +297,7 @@ class BlackAuction(Auction):
 
     def commit(self):
         super().commit()
-
-    # TODO: DO: co tohle má dělat? házelo to chybu
-    # Status.add(self.status_text % self)
+        Status.add(self.formatted_status(self.seller_name))
 
     @transaction.atomic
     def place_bid(self, team, amount):

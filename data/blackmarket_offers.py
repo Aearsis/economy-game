@@ -77,7 +77,10 @@ class SellerBase:
         When buying, start at 0.1 price than expected.
         When offering, offer 10 times more than expected.
         """
-        return diff * coef if diff >= 0 else diff / coef
+        if diff >= 0:
+            return max(1, int(diff * coef))
+        else:
+            return min(-1, int(diff / coef))
 
     @staticmethod
     def add_auction_item(auction, entity, amount, visible=True, will_sell=True):
