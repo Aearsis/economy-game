@@ -8,18 +8,54 @@
 <div class="row">
     <div class="col-md-6">
 
-        <dl class="dl-horizontal">
-            <dt>Prodejce:</dt>
-            <dd>{{ seller_name }}</dd>
-            {% if current_amount > 0 %}
-                <dt>Aktuální cena:</dt>
-            {% else %}
-                <dt>Aktuální nabídka:</dt>
+        <table class="table">
+            <tr>
+                <th>Prodejce:</th>
+                <td>{{ seller_name }}</td>
+            </tr>
+            <tr>
+                <th>Nabízí:</th>
+                <td>
+                    {% for ai in auc.visible_sells %}
+                        {{ ai.amount|quantity:ai.entity }}
+                    {% empty %}
+                        (nic)
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th>Požaduje:</th>
+                <td>
+                        {% for ai in auc.visible_wants %}
+                            {{ ai.amount|quantity:ai.entity }}
+                        {% empty %}
+                            (nic)
+                        {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                {% if current_amount > 0 %}
+                    <th>Vyvolávací cena:</th>
+                {% else %}
+                    <th>Vyvolávací nabídka:</th>
+                {% endif %}
+                <td>{{ auc.var_min|quantity:auc.var_entity }}</td>
+            </tr>
+            {% if auc.end %}
+            <tr>
+                <th>Končí:</th>
+                <td>{{ auc.end|gametime }}</td>
+            </tr>
             {% endif %}
-            <dd>{{ current_amount|quantity:auc.var_entity }}</dd>
-            <dt>Končí:</dt>
-            <dd>{{ auc.end|gametime }}</dd>
-        </dl>
+            <tr>
+                <th>Nejvyšší nabídka:</th>
+            {% if auc.effective_offer.winner %}
+                <td>{{ auc|effective_offer }}</td>
+            {% else %}
+                <td>zatím nikdo nepřihazuje</td>
+            {% endif %}
+            </tr>
+        </table>
     </div>
     {% if is_mine %}
         <div class="col-md-4">
@@ -39,7 +75,11 @@
         </div>
     {% else %}
         <div class="col-md-6">
-            <p><strong>Může to být vaše!</strong></p>
+            {% if auc.effective_offer.winner == team %}
+                <p><strong>Gratuluji! Zatím vyhráváte!</strong></p>
+            {% else %}
+                <p><strong>Může to být vaše!</strong></p>
+            {% endif %}
             {% if current_amount > 0 %}
                 <p>Nabídněte alespoň {{ minimum|quantity:auc.var_entity }}.</p>
             {% else %}
@@ -53,34 +93,15 @@
                     <input type="submit" value="přihodit" class="btn-success btn btn-block">
                 </div>
             </form>
+            {% if team_bid %}
+                <p>Vaše poslední nabídka je {{ team_bid.amount|quantity:auc.var_entity }}.</p>
+            {% endif %}
         </div>
     {% endif %}
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h3>Nabízí:</h3>
-        <ul>
-        {% for ai in auc.visible_sells %}
-            <li>{{ ai.amount|quantity:ai.entity }}</li>
-        {% empty %}
-            <li>Prodávající nic nenabízí.</li>
-        {% endfor %}
-        </ul>
-    </div>
-
-    <div class="col-md-4">
-        <h3>Požaduje:</h3>
-        <ul>
-        {% for ai in auc.visible_wants %}
-            <li>{{ ai.amount|quantity:ai.entity }}</li>
-        {% empty %}
-            <li>Prodávající nic nepožaduje.</li>
-        {% endfor %}
-        </ul>
-    </div>
-
-</div>
+<h3>Inventář</h3>
+{% include "core/team_inventory.html" %}
 
 
 {% endblock %}

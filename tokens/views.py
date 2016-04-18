@@ -1,3 +1,4 @@
+import random
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -33,6 +34,8 @@ def token_input(request):
 
 @permission_required("game_control")
 def token_print(request):
+    tok = list(Token.objects.all())
+    random.shuffle(tok)
     return render(request, "tokens/print.html", {
-        'tokens': Token.objects.all()
+        'tokens': tok
     })

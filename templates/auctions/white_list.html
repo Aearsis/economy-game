@@ -20,7 +20,8 @@
                 </div>
                 <div class="panel-body">
                     <p>{{ auc.description }}</p>
-                    <p>(TODO: obrázkové znázornění)</p>
+                    <p>{{ auc|auction_var }}</p>
+                    <p>{{ auc|auction_fixed }}</p>
                     <hr>
                     <p><i>{{ auc|auction_status:user.player.team }}</i></p>
                     <p><i>{{ auc.end|gametime:"Aukce končí %(natural)s.;Aukce už skončila.;" }}</i></p>
@@ -30,6 +31,9 @@
                 </div>
             </div>
         </div>
+        {% if forloop.counter|divisibleby:"3" %}
+            </div><div class="row">
+        {% endif %}
     {% endfor %}
 </div>
 

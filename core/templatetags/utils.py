@@ -31,8 +31,10 @@ def absolute(val):
 @register.filter
 def quantity(amount, entity):
     amount = abs(int(amount))
-    if amount <= 3:
-        return mark_safe(entity_icon(entity) * amount)
+    if amount == 0:
+        return "(nic)"
+    #if amount <= 3:
+    #    return mark_safe(str(entity_icon(entity)) * amount)
     return mark_safe("%s&times;%s" % (amount, entity_icon(entity)))
 
 
@@ -67,7 +69,7 @@ def auction_class(auction, team):
 @register.filter
 def auction_status(auction, team):
     if team:
-        if auction is WhiteAuction and auction.seller == team:
+        if isinstance(auction, WhiteAuction) and auction.seller == team:
             return "Tuto aukci jste vystavili vy."
 
         winner, _foo = auction.effective_offer
@@ -103,11 +105,11 @@ def entity_icon(entity):
 
 @register.filter
 def auction_var(auc: Auction):
-    _, offer = auc.effective_offer
+    offer = auc.minimum_bid()
     if offer >= 0:
-        return mark_safe("Požaduje %s" % quantity(offer, auc.var_entity))
+        return mark_safe("Požaduje alespoň: %s" % quantity(offer, auc.var_entity))
     else:
-        return mark_safe("Nabízí %s" % quantity(offer, auc.var_entity))
+        return mark_safe("Nabízí nejvýše: %s" % quantity(offer, auc.var_entity))
 
 @register.filter
 def auction_fixed(auc: Auction):
@@ -119,11 +121,15 @@ def auction_fixed(auc: Auction):
 
     if not wants:
         if sells:
-            return mark_safe("Prodává %s." % naturaljoin(map(format, wants)))
+            return mark_safe("Prodává: %s" % naturaljoin(map(format, sells)))
         else:
             return mark_safe("Ale nic nenabízí ani neprodává.")
     if not sells:
-        return mark_safe("Nabízí %s." % naturaljoin(map(format, sells)))
+        return mark_safe("Nabízí: %s" % naturaljoin(map(format, sells)))
 
     return mark_safe("Nabízí %s výměnou za %s." % (naturaljoin(map(format, sells)), naturaljoin(map(format, wants))))
 
+@register.filter
+def effective_offer(auction):
+    winner, offer = auction.effective_offer
+    return mark_safe("%s: %s" % (winner, quantity(offer, auction.var_entity)))

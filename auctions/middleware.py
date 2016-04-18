@@ -6,7 +6,6 @@ class AuctionCommitMiddleware(object):
         if not Game.has_started():
             return
 
-        to_commit = list(WhiteAuction.objects.filter(end__lt=Game.game_time(), commited__exact=False))
-        to_commit += list(BlackAuction.objects.filter(end__lt=Game.game_time(), commited__exact=False))
+        to_commit = Auction.objects.filter(end__lt=Game.game_time(), commited__exact=False).all()
         for auc in to_commit:
-            auc.commit()
+            auc.concrete_auction.commit()

@@ -4,11 +4,6 @@
 
 <div class="row">
     {% for auc in auctions %}
-        {% ifchanged auc.is_active %}
-    </div>
-    <hr>
-    <div class="row">
-        {% endifchanged %}
         <div class="col-sm-4">
             <div class="panel panel-{{ auc|auction_class:user.player.team }}">
                 <div class="panel-heading">
@@ -20,13 +15,16 @@
                     <p>{{ auc|auction_fixed }}</p>
                     <hr>
                     <p><i>{{ auc|auction_status:user.player.team }}</i></p>
-                    <p><i>{{ auc.end|gametime:"Aukce končí %(natural)s.;Aukce už skončila.;Nabídka zatím spí." }}</i></p>
+                    <p><i>{{ auc.end|gametime:"Aukce končí %(natural)s.;Aukce už skončila.;Nabídka zatím čeká na prvního zájemce." }}</i></p>
                 </div>
                 <div class="panel-footer text-center">
                     <a href="{% url "detail" auc.id %}">detail</a>
                 </div>
             </div>
         </div>
+        {% if forloop.counter|divisibleby:"3" %}
+            </div><div class="row">
+        {% endif %}
     {% endfor %}
 </div>
 

@@ -43,23 +43,29 @@ class SellerBase:
         Returns list of pairs (entity, amount) such that amounts are positive,
         and sum(entity.price * amount) is approximately price (but not higher)
         """
+        if not items:
+            return {}
         distribution = {e: price / len(items) for e in items}
-        print(distribution)
-        for i in range(10):
+        for i in range(30):
+            ndistribution = {}
             for e, v in distribution.items():
-                distribution[e] = distribution[e] // e.price * e.price
+                ndistribution[e] = distribution[e] // e.price * e.price
 
             remainder = price - sum(distribution.values())
             if remainder == 0:
                 break
 
-            for e, v in distribution.items():
+            for e, v in ndistribution.items():
                 if remainder >= e.price:
-                    newd = (distribution[e] + remainder) // e.price * e.price
-                    remainder -= newd - distribution[e]
-                    distribution[e] = newd
+                    newd = (ndistribution[e] + remainder) // e.price * e.price
+                    remainder -= newd - ndistribution[e]
+                    ndistribution[e] = newd
 
-            print(distribution)
+            if remainder == 0 or ndistribution == distribution:
+                break
+
+            distribution = ndistribution
+
         return {e: v/e.price for e, v in distribution.items()}
 
     def generate_one(self, time):
@@ -134,7 +140,9 @@ class RandomSellerBase(SellerBase):
             buy_count = min(1, buy_max)
             sell_count = min(1, sell_max)
 
-        auction = BlackAuction.objects.create(var_min=0)
+        auction = BlackAuction.objects.create(var_min=0, seller_name=seller_name(),
+                                              status_text=fair_status(),
+                                              begin=datetime.timedelta(seconds=self.game_len*time))
 
         price = 0
         sell_set = sample(sell, sell_count)
@@ -229,20 +237,8 @@ class RandomStuffRiscantSeller(RandomSellerBase):
         }).value_in_time
 
     def generate(self):
-        for x in range(0,100,20):
-            self.generate_one(x/100)
-
-        return
-        # TODO
-
-        #seconds = 0
-        #perc_time = 0
-        #while perc_time < 1:
-        #    span = self.spans.value_in_time(perc_time)
-        #    seconds += span
-        #    perc_time = seconds / self.game_len.seconds
-
-        #    self.generate_one(perc_time)
+        for x in range(0,500):
+            self.generate_one(x/500)
 
 
 class TrivialSeller(SellerBase):
@@ -273,7 +269,7 @@ class TrivialSeller(SellerBase):
 
 
 class StaticAuction(SellerBase):
-    def __init__(self, coef, *args, **kwargs):
+    def __init__(self, coef=1, *args, **kwargs):
         '''coef: coef from estimate_price'''
         super().__init__()
         self.estimate = not 'var_min' in kwargs.keys()
@@ -282,10 +278,13 @@ class StaticAuction(SellerBase):
         if 'begin' in kwargs:
             if not isinstance(kwargs['begin'], datetime.timedelta):
                 assert 0<= kwargs['begin'] <=1
-                
+
                 kwargs['begin'] = datetime.timedelta(seconds=self.game_len*kwargs['begin'])
         if 'status_text' not in kwargs:
             kwargs['status_text'] = fair_status()
+        if 'seller_name' not in kwargs:
+            kwargs['seller_name'] = seller_name()
+
         self.coef = coef
         self.b = BlackAuction.objects.create(*args, **kwargs)
 
@@ -303,11 +302,11 @@ def e(name):
 def sell_rafts_for_robots():
     def create(time):
         with StaticAuction(coef=1,
-                        begin=time,
+                        begin=time, var_min=1,
                         var_entity=choice(ent_filter(is_minable=True)),
                         seller_name="Igor Voloďa") as b:
-            b.add_item(e('Robot'), 1)
-            b.add_item(e('Vor'), -1)
+            b.add_item(e('Programovatelný neandrtálec'), -1)
+            b.add_item(e('Vor'), 1)
     
     for _ in range(3): create(0)  # třikrát se objeví na začátku
     c = 60  # number of auctions
@@ -316,13 +315,10 @@ def sell_rafts_for_robots():
         
 def peanut_merchant():
     def create(time):
-        b = BlackAuction(begin=datetime.timedelta(seconds=time*Game.the_row().length.seconds),end=None,
-                          var_entity=e("Burák"),
-                          var_min=1,
-                          seller_name='doc. Burák')
-        
-        b.save()
-        b.add_item(e('Robot'), -1)
+        with StaticAuction(begin=time,
+                          var_entity=e("Burák"), var_min=1,
+                          seller_name='doc. Burák') as b:
+            b.add_item(e('Programovatelný neandrtálec'), 1)
     
     num = 10
     for i in range(num):

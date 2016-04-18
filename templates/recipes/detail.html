@@ -6,9 +6,7 @@
         <div class="alert alert-success">Recept byl proveden</div>
     {% endif %}
 
-    <h2>{{ recipe_ingred.recipe.name }}
-        <small>{{ recipe_ingred.recipe.description }}</small>
-    </h2>
+    <h2>{{ recipe_ingred.recipe.name }}</h2>
 
     <p>{% include "recipes/recipe_line.html" with recipe_ingred=recipe_ingred %}</p>
 

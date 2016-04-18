@@ -6,7 +6,6 @@
              style="padding-top: 0; padding-bottom: 0">
             <h3 style="margin-top: 15px">
                 <a href="{% url 'recipes:detail' recipe_ingred.recipe.id %}">{{ recipe_ingred.recipe.name }}</a>
-                <small>{{ recipe_ingred.recipe.description }}</small>
             </h3>
             <p>
                 {% include "recipes/recipe_line.html" with recipe_ingred=recipe_ingred %}

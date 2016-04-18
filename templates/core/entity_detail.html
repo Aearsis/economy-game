@@ -46,7 +46,7 @@ Tento předmět žádný tým nevlastní.
 Předmětu se týkají tyto aukce:
     <ul>
     {% for auction in auctions %}
-    <li><a href="{% url 'detail' auction.id %}">{{ auction.concrete_auction.description }}</a></li>
+    <li><a href="{% url 'detail' auction.id %}">{{ auction.concrete_auction }}</a></li>
     {% endfor %}
     </ul>
 {% else %}

@@ -17,6 +17,10 @@ class Game(models.Model):
         return Game.the_row().started is not None
 
     @staticmethod
+    def is_running():
+        return Game.the_row().started is not None and Game.game_time() <= Game.the_row().length
+
+    @staticmethod
     def time_passed(delta):
         if not Game.has_started():
             return False
@@ -180,17 +184,11 @@ class Entity(models.Model):
         return " ".join(classes)
 
     def __str__(self):
-        classes = []
-        if self.is_strategic:
-            classes.append("(S) ")
-        if self.is_licence:
-            classes.append("(L) ")
-        if self.is_licenced:
-            classes.append("(D) ")
-        return self.name + "".join(classes)
+        return self.name
 
     class Meta:
         verbose_name_plural = "Entities"
+        ordering = ['name']
 
 
 class Quantity:

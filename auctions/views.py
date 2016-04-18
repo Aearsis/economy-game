@@ -19,7 +19,7 @@ def white_list(request):
 @game_running_required
 def black_market(request):
     return render(request, "auctions/black_market.html", {
-        'auctions': BlackAuction.objects.filter(begin__lte=Game.game_time())
+        'auctions': BlackAuction.objects.filter(begin__lte=Game.game_time()).exclude(end__lte=Game.game_time())
                   .order_by('-end', '-begin').all()
     })
 
@@ -37,6 +37,7 @@ def create_auction(request):
                 data['auctioneditems'] = formset.cleaned_data
                 auction = WhiteAuction.create(request.team, data)
                 messages.add_message(request, messages.SUCCESS, "Aukce byla vytvořena.")
+                Status.add("Tým %s právě vystavil aukci!" % request.team.name, Status.SUCCESS)
                 return redirect(reverse("detail", args=(auction.id,)))
             except InvalidTransaction as e:
                 form.add_error(None, str(e))
@@ -48,6 +49,7 @@ def create_auction(request):
         'form': form,
         'items': formset,
         'empty_item': formset.empty_form,
+        'balance': request.team.balance_set.all(),
     })
 
 
@@ -58,11 +60,7 @@ def get_active_auction(pk):
             raise 1
     except:
         raise Http404("Tato aukce neexistuje.")
-    if hasattr(auc, 'whiteauction'):
-        auc = auc.whiteauction
-    else:
-        auc = auc.blackauction
-    return auc
+    return auc.concrete_auction
 
 
 @team_required
@@ -107,6 +105,8 @@ def detail(request, auction):
         'seller_name': auc.get_seller_name(),
         'winner': winner,
         'form': bf,
+        'team': request.team,
         'current_amount': current_amount,
-        'minimum': minimum
+        'minimum': minimum,
+        'balance': request.team.balance_set.all(),
     })

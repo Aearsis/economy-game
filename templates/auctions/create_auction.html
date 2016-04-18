@@ -21,30 +21,8 @@
         {{ form.timespan|bootstrap }}
         {{ form.description|bootstrap }}
     </fieldset>
-    <fieldset>
-        <legend>Aukce</legend>
-        <p>V aukci se o vždy jednu položku soutěží. Je na vás, jestli chcete nějakého předmětu získat co nejvíce, a nebo zaplatit co nejméně.</p>
-        <div class="row">
-            <div class="col-md-2">
-                {{ form.var_direction|bootstrap_inline }}
-            </div>
-            <div class="col-md-2">
-                {{ form.var_min|bootstrap_inline }}
-            </div>
-            <div class="col-md-4">
-                {{ form.var_entity|bootstrap_inline }}
-            </div>
-            <div class="col-md-2">
-                <label for="{{ form.var_step.id_for_label }}" class="control-label" style="line-height: 34px">{{ form.var_step.label }}:</label>
-            </div>
-            <div class="col-md-2">
-                {{ form.var_step|bootstrap_inline }}
-            </div>
-        </div>
-    </fieldset>
     <fieldset class="dfs">
         <legend>Nákup a prodej</legend>
-        <p>Ostatní zde uvedené položky se při skončení aukce prodají nebo koupí od výherce. Pokud v aukci něco nabízíte, pravděpodobně chcete něco jiného koupit. Naopak, pokud něco poptáváte, měli byste něco na oplátku nabídnout.</p>
         <table class="table">
             <thead>
                 <tr>
@@ -77,8 +55,28 @@
         {{ items.management_form }}
     </fieldset>
     <fieldset>
+        <legend>Vyvolávací cena</legend>
+        <div class="row">
+            <div class="col-md-2">
+                {{ form.var_direction|bootstrap_inline }}
+            </div>
+            <div class="col-md-2">
+                {{ form.var_min|bootstrap_inline }}
+            </div>
+            <div class="col-md-4">
+                {{ form.var_entity|bootstrap_inline }}
+            </div>
+            <div class="col-md-2">
+                <label for="{{ form.var_step.id_for_label }}" class="control-label" style="line-height: 34px">{{ form.var_step.label }}:</label>
+            </div>
+            <div class="col-md-2">
+                {{ form.var_step|bootstrap_inline }}
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
         <legend>Vytvořit</legend>
-        <p>Jakmile akci jednou vytvoříte, nejde ji změnit ani zrušit. Prostřědky, které nabízíte v aukci, budou uschovány v aukčním domě až do skončení aukce (tj. třeba licence nebudete smět používat).</p>
+        <p>Jakmile aukci jednou vytvoříte, nejde ji změnit ani zrušit. Prostřědky, které nabízíte v aukci, budou uschovány v aukčním domě až do skončení aukce (tj. třeba nástroje nebudete smět používat).</p>
         <div class="text-center">
             <input type="submit" class="btn btn-lg btn-primary" value="Vytvořit aukci!">
         </div>

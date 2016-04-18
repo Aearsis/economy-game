@@ -54,7 +54,7 @@ all_goods = (
     EntityTuple("Pazourkové nůžky", 600, strategic=True),
     EntityTuple("Pazourkový nůž", 30),
     EntityTuple("Pila z piraních zubů", 300),
-    EntityTuple("Plátky bambusu", 50),
+    EntityTuple("Bambusové plátky", 50),
     EntityTuple("Proutěná ošatka", 10),
     EntityTuple("Písek", 1),
     EntityTuple("Přízeň hroších bohů", 360),
@@ -62,7 +62,7 @@ all_goods = (
     EntityTuple("Radix sort", 180),
     EntityTuple("Random sort", 5),
     EntityTuple("Rekurze", 2),
-    EntityTuple("Robot", 600),
+    EntityTuple("Programovatelný neandrtálec", 600),
     EntityTuple("Smrková deska", 120),
     EntityTuple("Smrkové polínko", 5, sell=False),
     EntityTuple("Smrkové prkno", 5, sell=False),
@@ -154,7 +154,7 @@ recipes = [
         creates={"Kožená šňůrka": 4},
     ),
     RecipeTuple(
-        consumes={"Plátky bambusu": 10},
+        consumes={"Bambusové plátky": 10},
         needs=("Kamenný lis",),
         creates={"Bambusová trubka": 1},
     ),
@@ -169,7 +169,7 @@ recipes = [
     RecipeTuple(
         consumes={"Bambus": 2},
         needs=("Pazourkový nůž",),
-        creates={"Plátky bambusu": 1},
+        creates={"Bambusové plátky": 1},
     ),
     RecipeTuple(
         consumes={"Pazourek": 1},
@@ -214,7 +214,7 @@ recipes = [
     RecipeTuple(
         consumes={"Radix sort": 2, "Křemen": 10},
         needs=("Kladivo", "Kamenné dláto"),
-        creates={"Robot": 1}
+        creates={"Programovatelný neandrtálec": 1}
     ),
     RecipeTuple(
         consumes={"Proutěná ošatka": 3, "Quick sort": 2},

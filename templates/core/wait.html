@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Čekej{% endblock %}
 {% block content %}
+    {% if game.has_started %}
+    <h2>Hra právě skončila.</h2>
+    <hr>
+
+    <p>Vyčkejte dalších pokynů.</p>
+    {% else %}
     <h2>Hra ještě nezačala.</h2>
     <hr>
 
     <p>S touto operací vyčkejte na začátek hry.</p>
+    {%  endif %}
 {% endblock %}

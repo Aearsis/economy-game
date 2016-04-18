@@ -38,7 +38,7 @@ def game_running_required(view_func):
     """
 
     def wrapped_view(request, *args, **kwargs):
-        if Game.has_started():
+        if Game.is_running():
             return view_func(request, *args, **kwargs)
 
         return redirect_to_login(request.build_absolute_uri(), reverse("wait"))

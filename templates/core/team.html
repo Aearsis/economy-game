@@ -2,14 +2,8 @@
 {% block title %}Tým {{ team.name }}{% endblock %}
 {% block content %}
 
-<h2><small>Tým</small> {{ team.name }}</h2>
+<h2>Inventář <small>{{ team.name }}</small></h2>
 
-<p>Vítejte ve hře.</p>
-
-<div class="alert alert-danger">TODO nápověda</div>
-
-<hr>
-<h3>Inventář</h3>
 {% include "core/team_inventory.html" %}
 
 {% endblock %}

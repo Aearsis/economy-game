@@ -7,31 +7,33 @@
     <link href = "{% static 'css/bootstrap.css' %}" rel = "stylesheet">
     <link href = "{% static 'css/main.css' %}" rel = "stylesheet">
     <link href = "{% static 'css/sprites.css' %}" rel = "stylesheet">
-    <title>{% block title %}Ekonomická hra{% endblock %}</title>
+    <title>{% block title %}praAukro{% endblock %}</title>
 </head>
 <body>
 
 <nav class="navbar navbar-default navbar-static-top">
     <div class="navbar-header">
-      <a class="navbar-brand" href="{% url 'router' %}">Ekonomická hra</a>
+      <a class="navbar-brand" href="{% url 'router' %}">praAukro</a>
     </div>
     <div class="container-fluid">
         <ul class="nav navbar-nav navbar">
             {% if user.is_authenticated %}
-                {% if perms.core.play_game %}
-                <li><a href="{% url 'team' %}">Informace o týmu</a></li>
+                <li><a href="{% url 'team' %}" class="navbar-">Inventář</a></li>
                 <li><a href="{% url 'auction/list' %}">Aukce</a></li>
-                <li><a href="{% url 'black' %}">Černý trh</a></li>
+                <li><a href="{% url 'black' %}" class="active">Černý trh</a></li>
                 <li><a href="{% url 'entities' %}">Předměty</a></li>
                 <li><a href="{% url 'recipes:index' %}">Recepty</a></li>
                 <li><a href="{% url 'token:input' %}">Zadávání lístečků</a></li>
-                {% endif %}
                 {% if perms.core.control_game  %}
                 <li><a href="{% url 'control' %}">Ovládací panel</a></li>
                 <li><a href="/admin">Administrace</a></li>
                 {% endif %}
                 <li><a href="{% url 'messages' %}">Zprávy</a></li>
                 <li><a href="{% url 'inventory' %}">Stavy týmů</a></li>
+            {% endif %}
+        </ul>
+        <ul class="nav navbar-right navbar-nav">
+            {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}">Odhlásit</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Přihlásit se</a></li>

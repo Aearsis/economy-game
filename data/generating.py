@@ -71,7 +71,7 @@ def generate_recipes(force=False):
     return "[ OK ] Recipe"
 
 def generate_tokens(force=False):
-    TOKEN_COUNT=1024
+    TOKEN_COUNT=1600
 
     if Token.objects.count() > 0:
         if force:
@@ -83,7 +83,6 @@ def generate_tokens(force=False):
         import math
         return 1/math.log(x)
 
-    # TODO: this "minable" list doesn't exist, fix it
     price_sum = sum(f(e.price * e.token_amount) for e in all_goods if e.token_amount > 0)
     for einfo in all_goods:
         if einfo.token_amount > 0:
@@ -93,15 +92,13 @@ def generate_tokens(force=False):
 
     return "[ OK ] Token"
 
-from data.blackmarket_offers import generate_blackmarket
-
 @transaction.atomic
 def generate_all_data(force = False):
     report = [
-        generate_entities(force),
-        generate_recipes(force),
+        #generate_entities(force),
+        #generate_recipes(force),
         #generate_tokens(force),
-        generate_blackmarket(force),
+        #generate_blackmarket(force),
     ]
 
     return report

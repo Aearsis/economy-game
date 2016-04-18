@@ -3,6 +3,7 @@ import timedelta
 import datetime
 
 from ekonomicka.utils import naturaljoin
+from data.blackmarket_offers import fair_status
 
 
 class Auction(models.Model):
@@ -141,7 +142,6 @@ class Auction(models.Model):
             if bidder is not None:
                 self._commit_buyer(t, amount)
 
-        # add status
         self.save()
 
     @property
@@ -247,6 +247,7 @@ class WhiteAuction(Auction):
         auc.var_min = data['var_min'] * int(data['var_direction'])
         auc.var_step = data['var_step']
         auc.seller = team
+        auc.status_text = fair_status()
         auc.save()
 
         with Transaction() as t:
@@ -287,7 +288,7 @@ class BlackAuction(Auction):
 
     @property
     def description(self):
-        return "%s nabízí následující obchod." % self.seller_name
+        return ""
 
     def is_white(self):
         return False
@@ -304,7 +305,8 @@ class BlackAuction(Auction):
         super().place_bid(team, amount)
 
         if self.end is None:
-            self.end = Game.game_time() + datetime.timedelta(minutes=10)
+            self.end = Game.game_time() + datetime.timedelta(minutes=5)
+            self.save()
 
     class Meta:
         verbose_name_plural = "Black market offers"

@@ -12,6 +12,7 @@ from auctions.models import *
 def team(request):
     return render(request, "core/team.html", {
         'team': request.team,
+        'balance': request.team.balance_set.all()
     })
 
 
@@ -34,6 +35,11 @@ def create_team(request, next="/team"):
 
 
 def messages(request):
+    data = Status.visible()
+    return render(request, 'dashboard/messages.html', {'statuses': data[0], 'refreshed': data[1]})
+
+
+def messages_standalone(request):
     data = Status.visible()
     return render(request, 'dashboard/messages.html', {'statuses': data[0], 'refreshed': data[1]})
 
@@ -75,13 +81,15 @@ def control_start(request):
 
 @team_required
 def wait_to_start(request):
-    if (Game.has_started()):
+    if (Game.is_running()):
         if 'next' in request.GET:
             return redirect(request.GET['next'])
         else:
             return redirect(reverse("team"))
     else:
-        return render(request, "core/wait.html")
+        return render(request, "core/wait.html", {
+            'game': Game.the_row()
+        })
 
 
 def entity_detail(request, entity_id):

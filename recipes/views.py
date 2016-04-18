@@ -57,5 +57,6 @@ def detail(request, recipe_id):
         'is_possible':is_possible,
         'errors':errors,
         'form':PerformRecipeForm(),
-        'performed':performed
+        'performed':performed,
+        'balance': request.team.balance_set.all(),
     })
