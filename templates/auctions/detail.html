@@ -49,7 +49,7 @@
             {% endif %}
             <tr>
                 <th>Nejvyšší nabídka:</th>
-            {% if auc.effective_offer.winner %}
+            {% if auc.effective_offer.0 %}
                 <td>{{ auc|effective_offer }}</td>
             {% else %}
                 <td>zatím nikdo nepřihazuje</td>
