@@ -1,6 +1,0 @@
-Potřebné moduly si nainstaluj tímhle příkazem:
-
-pip install -r install_this_packages.txt
-
-Vyrobte si vlastního admin uživatele pomocí:
-	./manage.py createsuperuser
